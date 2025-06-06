@@ -1,9 +1,11 @@
-<script setup lang="ts">
-import TheWelcome from '../components/TheWelcome.vue'
-</script>
-
 <template>
-  <main>
-    <TheWelcome />
+  <main class="flex-1 w-full px-0 sm:px-6 lg:px-8 py-8">
+    <div class="max-w-3xl w-full mx-auto px-0 sm:px-4">
+      <FeedbackForm />
+    </div>
   </main>
 </template>
+
+<script setup lang="ts">
+import FeedbackForm from '../components/FeedbackForm.vue'
+</script>
