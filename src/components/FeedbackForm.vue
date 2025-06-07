@@ -81,30 +81,26 @@
           </label>
 
           <div v-if="wantsResponse" class="mt-4 space-y-3">
-            <input
+            <BaseInput
               v-model="userName"
               type="text"
               placeholder="Your name"
-              class="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-brand transition-colors duration-200"
+              :error="
+                wantsResponse && userName.length > 0 && !isNameValid
+                  ? 'Name is required.'
+                  : undefined
+              "
             />
-            <div
-              v-if="wantsResponse && userName.length > 0 && !isNameValid"
-              class="text-xs text-red-500 mt-1"
-            >
-              Name is required.
-            </div>
-            <input
+            <BaseInput
               v-model="userEmail"
               type="email"
               placeholder="Your email"
-              class="w-full p-3 border-2 border-gray-200 rounded-lg focus:outline-none focus:border-brand transition-colors duration-200"
+              :error="
+                wantsResponse && userEmail.length > 0 && !isEmailValid
+                  ? 'Please enter a valid email address.'
+                  : undefined
+              "
             />
-            <div
-              v-if="wantsResponse && userEmail.length > 0 && !isEmailValid"
-              class="text-xs text-red-500 mt-1"
-            >
-              Please enter a valid email address.
-            </div>
           </div>
         </div>
 
@@ -121,9 +117,34 @@
 
     <SuccessModal
       v-if="showSuccessModal"
-      :isPositiveRating="isPositiveRating"
-      :ratingLabel="getRatingLabel"
+      :show-confetti="isPositiveRating"
+      :title="isPositiveRating ? 'Thank you for your feedback!' : 'Thanks for your honesty!'"
+      :message="
+        isPositiveRating
+          ? `Since you said your experience was ${getRatingLabel}, would you mind rating us on the Chrome Store?`
+          : 'We appreciate your honesty and will use your feedback to improve OptiPilot.'
+      "
+      :action-text="isPositiveRating ? 'Close' : 'Close'"
       @close="closeModal"
+    >
+      <template v-if="isPositiveRating" #actions>
+        <a
+          href="https://chromewebstore.google.com/detail/optipilot/dmlphobmkbabbhpeflkgoljkojgioiai"
+          target="_blank"
+          rel="noopener noreferrer"
+          class="flex-1 py-3 px-6 bg-brand text-white font-semibold rounded-lg shadow hover:bg-brand-dark transition-colors duration-200 text-base tracking-tight text-center"
+        >
+          Rate on Chrome Store
+        </a>
+      </template>
+    </SuccessModal>
+
+    <ErrorModal
+      v-if="showErrorModal"
+      title="Submission Failed"
+      :message="errorMessage"
+      action-text="Try Again"
+      @close="closeErrorModal"
     />
   </div>
 </template>
@@ -131,6 +152,9 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import SuccessModal from './SuccessModal.vue'
+import ErrorModal from './ErrorModal.vue'
+import BaseInput from './BaseInput.vue'
+import { firebaseService } from '@/services/firebase/firebase-service'
 
 // Feedback Types
 const feedbackTypes = [
@@ -156,6 +180,8 @@ const wantsResponse = ref(false)
 const userName = ref('')
 const userEmail = ref('')
 const showSuccessModal = ref(false)
+const showErrorModal = ref(false)
+const errorMessage = ref('')
 
 // Computed Properties
 const getPlaceholderText = computed(() => {
@@ -195,9 +221,25 @@ const getRatingLabel = computed(() => {
 })
 
 // Methods
-const submitFeedback = () => {
-  // TODO: Implement Firebase integration
-  showSuccessModal.value = true
+const submitFeedback = async () => {
+  try {
+    await firebaseService.submitFeedback({
+      type: selectedType.value as 'bug' | 'feature' | 'other',
+      rating: selectedRating.value as 'terrible' | 'bad' | 'okay' | 'good' | 'amazing',
+      text: feedbackText.value,
+      wantsResponse: wantsResponse.value,
+      contactInfo: wantsResponse.value
+        ? {
+            name: userName.value,
+            email: userEmail.value,
+          }
+        : undefined,
+    })
+    showSuccessModal.value = true
+  } catch (error) {
+    errorMessage.value = error instanceof Error ? error.message : 'Failed to submit feedback'
+    showErrorModal.value = true
+  }
 }
 
 const closeModal = () => {
@@ -209,5 +251,10 @@ const closeModal = () => {
   wantsResponse.value = false
   userName.value = ''
   userEmail.value = ''
+}
+
+const closeErrorModal = () => {
+  showErrorModal.value = false
+  errorMessage.value = ''
 }
 </script>

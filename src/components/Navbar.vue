@@ -2,12 +2,10 @@
   <nav class="w-full bg-white shadow-sm fixed top-0 left-0 z-50">
     <div class="w-full px-4">
       <div class="flex justify-between items-center h-16">
-        <!-- Left side - OptiPilot -->
         <div class="flex items-center">
           <h1 class="text-xl font-semibold text-gray-900">OptiPilot</h1>
         </div>
 
-        <!-- Right side - Powered by TopFlight -->
         <a
           href="https://www.top-flight-digital.com"
           target="_blank"
