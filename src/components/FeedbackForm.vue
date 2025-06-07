@@ -107,10 +107,31 @@
         <!-- Submit Button -->
         <button
           @click="submitFeedback"
-          :disabled="!isFormValid"
-          class="w-full py-3 sm:py-4 px-6 bg-brand text-white font-semibold rounded-lg transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-brand-dark text-base tracking-tight"
+          :disabled="!isFormValid || isSubmitting"
+          class="w-full py-3 sm:py-4 px-6 bg-brand text-white font-semibold rounded-lg transition-colors duration-200 disabled:bg-gray-300 disabled:cursor-not-allowed hover:bg-brand-dark text-base tracking-tight flex items-center justify-center gap-2"
         >
-          Submit Feedback
+          <svg
+            v-if="isSubmitting"
+            class="animate-spin h-5 w-5 text-white"
+            xmlns="http://www.w3.org/2000/svg"
+            fill="none"
+            viewBox="0 0 24 24"
+          >
+            <circle
+              class="opacity-25"
+              cx="12"
+              cy="12"
+              r="10"
+              stroke="currentColor"
+              stroke-width="4"
+            ></circle>
+            <path
+              class="opacity-75"
+              fill="currentColor"
+              d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+            ></path>
+          </svg>
+          {{ isSubmitting ? 'Submitting...' : 'Submit Feedback' }}
         </button>
       </div>
     </div>
@@ -182,6 +203,7 @@ const userEmail = ref('')
 const showSuccessModal = ref(false)
 const showErrorModal = ref(false)
 const errorMessage = ref('')
+const isSubmitting = ref(false)
 
 // Computed Properties
 const getPlaceholderText = computed(() => {
@@ -222,6 +244,7 @@ const getRatingLabel = computed(() => {
 
 // Methods
 const submitFeedback = async () => {
+  isSubmitting.value = true
   try {
     await firebaseService.submitFeedback({
       type: selectedType.value as 'bug' | 'feature' | 'other',
@@ -239,6 +262,8 @@ const submitFeedback = async () => {
   } catch (error) {
     errorMessage.value = error instanceof Error ? error.message : 'Failed to submit feedback'
     showErrorModal.value = true
+  } finally {
+    isSubmitting.value = false
   }
 }
 
