@@ -1,12 +1,9 @@
 <script setup lang="ts">
-import Navbar from './components/Navbar.vue'
+// App.vue is now a simple router view container
 </script>
 
 <template>
-  <div class="min-h-screen flex flex-col bg-gray-50">
-    <Navbar />
-    <router-view />
-  </div>
+  <router-view />
 </template>
 
 <style></style>
