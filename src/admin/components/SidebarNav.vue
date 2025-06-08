@@ -304,6 +304,7 @@
     <div class="flex-shrink-0 border-t border-gray-200 p-4 mt-auto">
       <button
         type="button"
+        @click="handleLogout"
         class="group flex w-full items-center px-2 py-2 text-sm font-medium text-gray-600 hover:bg-gray-50 hover:text-gray-900 rounded-md"
       >
         <svg
@@ -328,9 +329,11 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
+import { useAdminAuth } from '@/stores/adminAuth'
 
 const route = useRoute()
 const router = useRouter()
+const adminAuth = useAdminAuth()
 const statusOpen = ref(false)
 const notesOpen = ref(false)
 
@@ -425,6 +428,15 @@ const viewAllNotes = () => {
     query: { hasNotes: 'true' },
   })
   notesOpen.value = false
+}
+
+const handleLogout = async () => {
+  try {
+    await adminAuth.signOut()
+    router.push('/admin/signin')
+  } catch (error) {
+    console.error('Logout error:', error)
+  }
 }
 </script>
 

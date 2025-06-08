@@ -1,5 +1,12 @@
 import { defineStore } from 'pinia'
-import { getAuth, signInWithEmailAndPassword, signOut as firebaseSignOut } from 'firebase/auth'
+import {
+  getAuth,
+  signInWithEmailAndPassword,
+  signOut as firebaseSignOut,
+  setPersistence,
+  browserLocalPersistence,
+  onAuthStateChanged,
+} from 'firebase/auth'
 import { getFirestore, doc, getDoc } from 'firebase/firestore'
 import { app } from '@/config/firebase-config'
 
@@ -9,14 +16,61 @@ interface AdminUser {
   name: string
 }
 
+// Constants
+const SESSION_KEY = 'admin_session_timestamp'
+const SESSION_TIMEOUT = 24 * 60 * 60 * 1000
+
 export const useAdminAuth = defineStore('adminAuth', {
   state: () => ({
     admin: null as AdminUser | null,
     isLoading: false,
     error: null as string | null,
+    isInitialized: false,
   }),
 
   actions: {
+    async init() {
+      if (this.isInitialized) return
+
+      const auth = getAuth(app)
+      await setPersistence(auth, browserLocalPersistence)
+
+      // Check session expiration
+      if (this.isSessionExpired()) {
+        await this.signOut()
+        return
+      }
+
+      // Listen for auth state changes
+      onAuthStateChanged(auth, async (user) => {
+        if (user) {
+          try {
+            const db = getFirestore(app)
+            const adminDoc = await getDoc(doc(db, 'admins', user.uid))
+
+            if (adminDoc.exists() && adminDoc.data().role === 'admin') {
+              this.admin = {
+                uid: user.uid,
+                email: user.email!,
+                name: adminDoc.data().name,
+              }
+              // Update session timestamp
+              this.updateSessionTimestamp()
+            } else {
+              this.admin = null
+              await firebaseSignOut(auth)
+            }
+          } catch (error) {
+            console.error('Error checking admin status:', error)
+            this.admin = null
+          }
+        } else {
+          this.admin = null
+        }
+        this.isInitialized = true
+      })
+    },
+
     async signIn(email: string, password: string) {
       this.isLoading = true
       this.error = null
@@ -41,10 +95,12 @@ export const useAdminAuth = defineStore('adminAuth', {
           email: userCredential.user.email!,
           name: adminDoc.data().name,
         }
+
+        // Set session timestamp
+        this.updateSessionTimestamp()
       } catch (error) {
-        console.error('Sign in error:', error) // Add detailed error logging
+        console.error('Sign in error:', error)
         if (error instanceof Error) {
-          // Handle Firebase Auth specific errors
           if (error.message.includes('auth/invalid-credential')) {
             this.error = 'Invalid email or password'
           } else if (error.message.includes('auth/too-many-requests')) {
@@ -66,22 +122,26 @@ export const useAdminAuth = defineStore('adminAuth', {
     },
 
     async signOut() {
-      this.isLoading = true
-      this.error = null
-
-      try {
-        const auth = getAuth(app)
-        await firebaseSignOut(auth)
-        this.admin = null
-      } catch (error) {
-        this.error = error instanceof Error ? error.message : 'Failed to sign out'
-        throw error
-      } finally {
-        this.isLoading = false
-      }
+      const auth = getAuth(app)
+      await firebaseSignOut(auth)
+      this.admin = null
+      this.clearSessionTimestamp()
     },
 
     async checkAdminStatus() {
+      // Wait for initialization if not initialized
+      if (!this.isInitialized) {
+        await this.init()
+      }
+
+      // Check session expiration
+      if (this.isSessionExpired()) {
+        await this.signOut()
+        return false
+      }
+
+      if (this.admin) return true
+
       const auth = getAuth(app)
       const user = auth.currentUser
 
@@ -91,20 +151,38 @@ export const useAdminAuth = defineStore('adminAuth', {
         const db = getFirestore(app)
         const adminDoc = await getDoc(doc(db, 'admins', user.uid))
 
-        if (!adminDoc.exists() || adminDoc.data().role !== 'admin') {
-          await firebaseSignOut(auth)
-          return false
+        if (adminDoc.exists() && adminDoc.data().role === 'admin') {
+          this.admin = {
+            uid: user.uid,
+            email: user.email!,
+            name: adminDoc.data().name,
+          }
+          return true
         }
 
-        this.admin = {
-          uid: user.uid,
-          email: user.email!,
-          name: adminDoc.data().name,
-        }
-        return true
-      } catch {
+        return false
+      } catch (error) {
+        console.error('Error checking admin status:', error)
         return false
       }
+    },
+
+    // Session management helpers
+    updateSessionTimestamp() {
+      localStorage.setItem(SESSION_KEY, Date.now().toString())
+    },
+
+    clearSessionTimestamp() {
+      localStorage.removeItem(SESSION_KEY)
+    },
+
+    isSessionExpired(): boolean {
+      const timestamp = localStorage.getItem(SESSION_KEY)
+      if (!timestamp) return true
+
+      const now = Date.now()
+      const sessionAge = now - parseInt(timestamp)
+      return sessionAge > SESSION_TIMEOUT
     },
   },
 })

@@ -126,7 +126,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import BaseInput from '@/components/BaseInput.vue'
 import { useAdminAuth } from '@/stores/adminAuth'
@@ -144,6 +144,17 @@ const showPassword = ref(false)
 const emailError = ref('')
 const passwordError = ref('')
 const generalError = ref('')
+
+// Initialize auth on component mount
+onMounted(async () => {
+  if (!adminAuth.isInitialized) {
+    await adminAuth.init()
+  }
+  // If already signed in, redirect to dashboard
+  if (await adminAuth.checkAdminStatus()) {
+    router.push('/admin/dashboard')
+  }
+})
 
 // Computed
 const isFormValid = computed(() => {

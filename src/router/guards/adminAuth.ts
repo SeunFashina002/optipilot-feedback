@@ -8,9 +8,13 @@ export async function adminAuthGuard(
 ) {
   const adminAuth = useAdminAuth()
 
-  // Allow access to sign in page
+  // Initialize auth if not already initialized
+  if (!adminAuth.isInitialized) {
+    await adminAuth.init()
+  }
+
+  // Skip auth check for sign in page
   if (to.path === '/admin/signin') {
-    // If already signed in, redirect to dashboard
     if (await adminAuth.checkAdminStatus()) {
       return next('/admin/dashboard')
     }
