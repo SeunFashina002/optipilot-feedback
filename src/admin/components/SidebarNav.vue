@@ -1,15 +1,48 @@
 <template>
   <div class="flex flex-col h-full">
+    <!-- Close button for mobile -->
+    <div class="lg:hidden flex justify-end p-4">
+      <button
+        class="flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand"
+        @click="emit('close')"
+        aria-label="Close sidebar"
+      >
+        <svg class="h-6 w-6 text-gray-600" stroke="currentColor" fill="none" viewBox="0 0 24 24">
+          <path
+            stroke-linecap="round"
+            stroke-linejoin="round"
+            stroke-width="2"
+            d="M6 18L18 6M6 6l12 12"
+          />
+        </svg>
+      </button>
+    </div>
+
+    <!-- Admin Info -->
+    <div class="flex-shrink-0 border-b border-gray-200 p-4">
+      <div class="flex items-center">
+        <div class="flex-shrink-0">
+          <div class="h-10 w-10 rounded-full bg-brand flex items-center justify-center">
+            <span class="text-white font-medium text-sm">{{ adminInitials }}</span>
+          </div>
+        </div>
+        <div class="ml-3">
+          <p class="text-sm font-medium text-gray-700">{{ adminAuth.admin?.name }}</p>
+          <p class="text-xs text-gray-500">{{ adminAuth.admin?.email }}</p>
+        </div>
+      </div>
+    </div>
+
     <nav class="flex-1 px-2 py-4 space-y-1">
       <!-- Dashboard -->
-      <router-link
-        to="/admin"
+      <button
         class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
         :class="[
           $route.path === '/admin'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
+        @click="navigateTo('/admin')"
       >
         <svg
           class="mr-3 h-6 w-6"
@@ -28,17 +61,17 @@
           />
         </svg>
         Dashboard
-      </router-link>
+      </button>
 
       <!-- All Feedback -->
-      <router-link
-        to="/admin/feedback"
+      <button
         class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
         :class="[
           $route.path === '/admin/feedback'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
+        @click="navigateTo('/admin/feedback')"
       >
         <svg
           class="mr-3 h-6 w-6"
@@ -63,7 +96,7 @@
           class="ml-auto inline-block py-0.5 px-3 text-xs rounded-full bg-gray-100 text-gray-600"
           >1,234</span
         >
-      </router-link>
+      </button>
 
       <!-- Status Dropdown -->
       <div>
@@ -81,12 +114,12 @@
               stroke-linecap="round"
               stroke-linejoin="round"
               stroke-width="2"
-              d="M5 13l4 4L19 7"
+              d="M9 5H7a2 2 0 00-2 2v12a2 2 0 002 2h10a2 2 0 002-2V7a2 2 0 00-2-2h-2M9 5a2 2 0 002 2h2a2 2 0 002-2M9 5a2 2 0 012-2h2a2 2 0 012 2"
             />
           </svg>
           Status
           <svg
-            :class="['ml-auto h-4 w-4 transition-transform', statusOpen ? 'rotate-180' : '']"
+            :class="['ml-2 h-4 w-4 transition-transform', statusOpen ? 'rotate-180' : '']"
             fill="none"
             viewBox="0 0 24 24"
             stroke="currentColor"
@@ -139,13 +172,13 @@
 
       <!-- Bug Reports -->
       <button
-        @click="filterByType('bug')"
         class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
           currentType === 'bug'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
+        @click="filterByType('bug')"
       >
         <svg
           class="mr-3 h-6 w-6"
@@ -171,13 +204,13 @@
 
       <!-- Feature Requests -->
       <button
-        @click="filterByType('feature')"
         class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
           currentType === 'feature'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
+        @click="filterByType('feature')"
       >
         <svg
           class="mr-3 h-6 w-6"
@@ -204,13 +237,13 @@
 
       <!-- General Feedback -->
       <button
-        @click="filterByType('other')"
         class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
           currentType === 'other'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
+        @click="filterByType('other')"
       >
         <svg
           class="mr-3 h-6 w-6"
@@ -331,6 +364,8 @@ import { ref, computed } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminAuth } from '@/stores/adminAuth'
 
+const emit = defineEmits(['close'])
+
 const route = useRoute()
 const router = useRouter()
 const adminAuth = useAdminAuth()
@@ -339,6 +374,16 @@ const notesOpen = ref(false)
 
 const currentStatus = computed(() => (route.query.status as string) || '')
 const currentType = computed(() => (route.query.type as string) || '')
+
+// Get admin initials
+const adminInitials = computed(() => {
+  if (!adminAuth.admin?.name) return ''
+  return adminAuth.admin.name
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+})
 
 // Sample data for feedbacks with notes
 const feedbacksWithNotes = ref([
@@ -392,6 +437,12 @@ const totalNotes = computed(() => {
   return feedbacksWithNotes.value.reduce((sum, fb) => sum + fb.notesCount, 0)
 })
 
+// Navigation wrapper that closes sidebar
+const navigateTo = (path: string) => {
+  router.push(path)
+  emit('close')
+}
+
 const filterByStatus = (status: string) => {
   // If clicking the same status, clear the filter
   if (currentStatus.value === status) {
@@ -400,6 +451,7 @@ const filterByStatus = (status: string) => {
     router.push({ query: { ...route.query, status } })
   }
   statusOpen.value = false
+  emit('close')
 }
 
 const filterByType = (type: string) => {
@@ -415,11 +467,13 @@ const filterByType = (type: string) => {
       query: { type }, // Only set the type parameter
     })
   }
+  emit('close')
 }
 
 const viewFeedback = (id: number) => {
   router.push({ name: 'admin-feedback-detail', params: { id } })
   notesOpen.value = false
+  emit('close')
 }
 
 const viewAllNotes = () => {
@@ -428,12 +482,14 @@ const viewAllNotes = () => {
     query: { hasNotes: 'true' },
   })
   notesOpen.value = false
+  emit('close')
 }
 
 const handleLogout = async () => {
   try {
     await adminAuth.signOut()
     router.push('/admin/signin')
+    emit('close')
   } catch (error) {
     console.error('Logout error:', error)
   }

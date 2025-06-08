@@ -12,11 +12,11 @@ const app = createApp(App)
 const pinia = createPinia()
 
 app.use(pinia)
+app.use(router)
 
 // Initialize admin auth
 const adminAuth = useAdminAuth()
-adminAuth.init()
-
-app.use(router)
-
-app.mount('#app')
+;(async () => {
+  await adminAuth.init()
+  app.mount('#app')
+})()

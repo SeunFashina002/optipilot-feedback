@@ -24,8 +24,8 @@ export async function adminAuthGuard(
   // For all other admin routes, check admin status
   const isAdmin = await adminAuth.checkAdminStatus()
   if (!isAdmin) {
-    // Show 404 instead of redirecting to sign in
-    return next({ name: 'not-found' })
+    // Redirect to sign in page if not authenticated
+    return next('/admin/signin')
   }
 
   next()

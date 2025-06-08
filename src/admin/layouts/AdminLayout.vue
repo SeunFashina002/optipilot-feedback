@@ -34,7 +34,7 @@
                 class="flex h-8 w-8 items-center justify-center rounded-full bg-brand text-sm font-medium text-white focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
                 aria-label="User menu"
               >
-                <span>JD</span>
+                <span>{{ adminInitials }}</span>
               </button>
             </div>
           </div>
@@ -58,29 +58,8 @@
         ></div>
         <!-- Drawer -->
         <div class="relative flex w-64 flex-1 flex-col bg-white shadow-xl">
-          <div class="absolute top-0 right-0 pt-2 pr-2">
-            <button
-              class="flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand"
-              @click="sidebarOpen = false"
-              aria-label="Close sidebar"
-            >
-              <svg
-                class="h-6 w-6 text-gray-600"
-                stroke="currentColor"
-                fill="none"
-                viewBox="0 0 24 24"
-              >
-                <path
-                  stroke-linecap="round"
-                  stroke-linejoin="round"
-                  stroke-width="2"
-                  d="M6 18L18 6M6 6l12 12"
-                />
-              </svg>
-            </button>
-          </div>
           <div class="flex-1 overflow-y-auto">
-            <SidebarNav />
+            <SidebarNav @close="sidebarOpen = false" />
           </div>
         </div>
       </div>
@@ -104,9 +83,22 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useAdminAuth } from '@/stores/adminAuth'
 import SidebarNav from '../components/SidebarNav.vue'
+
+const adminAuth = useAdminAuth()
 const sidebarOpen = ref(false)
+
+// Get admin initials
+const adminInitials = computed(() => {
+  if (!adminAuth.admin?.name) return ''
+  return adminAuth.admin.name
+    .split(' ')
+    .map((word) => word[0])
+    .join('')
+    .toUpperCase()
+})
 </script>
 
 <style scoped>

@@ -17,7 +17,7 @@
         </p>
         <div class="mt-6">
           <button
-            @click="$router.back()"
+            @click="goToFeedback"
             class="inline-flex items-center px-4 py-2 border border-transparent text-sm font-medium rounded-md shadow-sm text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand"
           >
             <svg class="mr-2 -ml-1 h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
@@ -28,7 +28,7 @@
                 d="M10 19l-7-7m0 0l7-7m-7 7h18"
               />
             </svg>
-            Go Back
+            Go to Feedback
           </button>
         </div>
       </div>
@@ -37,5 +37,11 @@
 </template>
 
 <script setup lang="ts">
-// NotFound component is shared between admin and user interfaces
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
+
+const goToFeedback = () => {
+  router.push('/feedback')
+}
 </script>
