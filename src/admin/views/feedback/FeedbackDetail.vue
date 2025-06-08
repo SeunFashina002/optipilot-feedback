@@ -1,6 +1,9 @@
 <template>
   <div class="p-6">
-    <div v-if="feedback">
+    <div v-if="isLoading" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+    </div>
+    <div v-else-if="feedback">
       <!-- Header -->
       <div class="sm:flex sm:items-center sm:justify-between">
         <div>
@@ -44,8 +47,8 @@
             <div class="px-4 py-5 sm:p-6">
               <div class="flex items-center justify-between">
                 <div>
-                  <h3 class="text-lg font-medium leading-6 text-gray-900">{{ feedback.type }}</h3>
-                  <p class="mt-1 text-sm text-gray-500">Submitted on {{ feedback.date }}</p>
+                  <h3 class="text-lg font-medium leading-6 text-gray-900">{{ formattedType }}</h3>
+                  <p class="mt-1 text-sm text-gray-500">Submitted on {{ formattedDate }}</p>
                 </div>
                 <span :class="ratingClass(feedback.rating)">
                   {{ feedback.rating.charAt(0).toUpperCase() + feedback.rating.slice(1) }}
@@ -59,25 +62,25 @@
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900">Feedback</h3>
               <div class="mt-4 text-sm text-gray-500">
-                <p>{{ feedback.feedback }}</p>
+                <p>{{ feedback.text }}</p>
               </div>
             </div>
           </div>
 
           <!-- Contact Information -->
-          <div v-if="feedback.contact" class="bg-white shadow sm:rounded-lg">
+          <div v-if="feedback.contactInfo" class="bg-white shadow sm:rounded-lg">
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900">Contact Information</h3>
               <div class="mt-4 text-sm text-gray-500">
-                <p v-if="feedback.contact.name">
-                  <span class="font-medium">Name:</span> {{ feedback.contact.name }}
+                <p v-if="feedback.contactInfo.name">
+                  <span class="font-medium">Name:</span> {{ feedback.contactInfo.name }}
                 </p>
-                <p v-if="feedback.contact.email" class="mt-2">
-                  <span class="font-medium">Email:</span> {{ feedback.contact.email }}
+                <p v-if="feedback.contactInfo.email" class="mt-2">
+                  <span class="font-medium">Email:</span> {{ feedback.contactInfo.email }}
                 </p>
-                <p v-if="feedback.contact.wantResponse !== undefined" class="mt-2">
+                <p v-if="feedback.wantsResponse !== undefined" class="mt-2">
                   <span class="font-medium">Wants Response:</span>
-                  {{ feedback.contact.wantResponse ? 'Yes' : 'No' }}
+                  {{ feedback.wantsResponse ? 'Yes' : 'No' }}
                 </p>
               </div>
             </div>
@@ -119,7 +122,7 @@
           </div>
 
           <!-- Response (only if wantResponse is true) -->
-          <div v-if="feedback.contact" class="bg-white shadow sm:rounded-lg">
+          <div v-if="feedback.contactInfo" class="bg-white shadow sm:rounded-lg">
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900">Response</h3>
               <div class="mt-4">
@@ -147,83 +150,32 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRoute } from 'vue-router'
-
-interface Contact {
-  name: string
-  email: string
-  wantResponse: boolean
-}
-
-interface Feedback {
-  id: number
-  type: string
-  rating: string
-  feedback: string
-  date: string
-  status: string
-  contact: Contact | null
-  notesCount: number
-}
-
-// Simulate the same feedbacks array as in FeedbackList.vue
-const feedbacks = [
-  {
-    id: 1,
-    type: 'Bug Report',
-    rating: 'terrible',
-    feedback: 'The extension keeps crashing when I try to use it with multiple tabs...',
-    date: '2024-02-20',
-    status: 'pending',
-    contact: { name: 'John Doe', email: 'john@example.com', wantResponse: true },
-    notesCount: 2,
-  },
-  {
-    id: 2,
-    type: 'Feature Request',
-    rating: 'amazing',
-    feedback: 'Would love to see dark mode support in the next update.',
-    date: '2024-02-19',
-    status: 'resolved',
-    contact: { name: 'Jane Smith', email: 'jane@example.com', wantResponse: false },
-    notesCount: 1,
-  },
-  {
-    id: 3,
-    type: 'General Feedback',
-    rating: 'good',
-    feedback: 'Great extension, but it could use more customization options.',
-    date: '2024-02-18',
-    status: 'closed',
-    contact: null,
-    notesCount: 0,
-  },
-  {
-    id: 4,
-    type: 'Bug Report',
-    rating: 'okay',
-    feedback: "Sometimes the extension doesn't load on startup.",
-    date: '2024-02-17',
-    status: 'pending',
-    contact: { name: 'Alex Lee', email: 'alex@example.com', wantResponse: true },
-    notesCount: 3,
-  },
-  {
-    id: 5,
-    type: 'Feature Request',
-    rating: 'bad',
-    feedback: 'The onboarding process is confusing for new users.',
-    date: '2024-02-16',
-    status: 'pending',
-    contact: null,
-    notesCount: 0,
-  },
-]
+import { firebaseService } from '@/services/firebase/firebase-service'
+import { getFeedbackById, formatFeedbackType } from '@/utils/feedback'
+import type { FeedbackWithId } from '@/services/firebase/types'
 
 const route = useRoute()
-const feedbackId = computed(() => Number(route.params.id))
-const feedback = computed(() => feedbacks.find((fb) => fb.id === feedbackId.value))
+const feedbacks = ref<FeedbackWithId[]>([])
+const isLoading = ref(true)
+const feedbackId = computed(() => route.params.id as string)
+const feedback = computed(() => getFeedbackById(feedbacks.value, feedbackId.value))
+
+const formattedType = computed(() =>
+  feedback.value ? formatFeedbackType(feedback.value.type) : '',
+)
+const formattedDate = computed(() =>
+  feedback.value && feedback.value.createdAt
+    ? `${feedback.value.createdAt.toLocaleDateString()} ${feedback.value.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
+    : '',
+)
+
+onMounted(async () => {
+  isLoading.value = true
+  feedbacks.value = await firebaseService.getFeedbacks()
+  isLoading.value = false
+})
 
 function ratingClass(rating: string) {
   switch (rating) {

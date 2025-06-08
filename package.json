@@ -15,6 +15,7 @@
   "dependencies": {
     "@types/yup": "^0.29.14",
     "canvas-confetti": "^1.9.3",
+    "date-fns": "^4.1.0",
     "dotenv": "^16.5.0",
     "firebase": "^11.9.0",
     "formik": "^2.4.6",

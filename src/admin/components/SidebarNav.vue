@@ -94,7 +94,7 @@
         All Feedback
         <span
           class="ml-auto inline-block py-0.5 px-3 text-xs rounded-full bg-gray-100 text-gray-600"
-          >1,234</span
+          >{{ feedbackCounts.total }}</span
         >
       </button>
 
@@ -197,8 +197,9 @@
           />
         </svg>
         Bug Reports
-        <span class="ml-auto inline-block py-0.5 px-3 text-xs rounded-full bg-red-100 text-red-600"
-          >45</span
+        <span
+          class="ml-auto inline-block py-0.5 px-3 text-xs rounded-full bg-red-100 text-red-600"
+          >{{ feedbackCounts.byType.bug }}</span
         >
       </button>
 
@@ -231,7 +232,7 @@
         Feature Requests
         <span
           class="ml-auto inline-block py-0.5 px-3 text-xs rounded-full bg-purple-100 text-purple-600"
-          >30</span
+          >{{ feedbackCounts.byType.feature }}</span
         >
       </button>
 
@@ -264,7 +265,7 @@
         General Feedback
         <span
           class="ml-auto inline-block py-0.5 px-3 text-xs rounded-full bg-blue-100 text-blue-600"
-          >25</span
+          >{{ feedbackCounts.byType.other }}</span
         >
       </button>
 
@@ -360,9 +361,11 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted, watch } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useAdminAuth } from '@/stores/adminAuth'
+import { firebaseService } from '@/services/firebase/firebase-service'
+import type { FeedbackWithId } from '@/services/firebase/types'
 
 const emit = defineEmits(['close'])
 
@@ -371,6 +374,8 @@ const router = useRouter()
 const adminAuth = useAdminAuth()
 const statusOpen = ref(false)
 const notesOpen = ref(false)
+const feedbacks = ref<FeedbackWithId[]>([])
+const isLoading = ref(true)
 
 const currentStatus = computed(() => (route.query.status as string) || '')
 const currentType = computed(() => (route.query.type as string) || '')
@@ -385,56 +390,56 @@ const adminInitials = computed(() => {
     .toUpperCase()
 })
 
-// Sample data for feedbacks with notes
-const feedbacksWithNotes = ref([
-  {
-    id: 1,
-    feedback: 'The extension keeps crashing when I try to use it with multiple tabs...',
-    date: '2024-02-20',
-    notesCount: 2,
+// Fetch feedbacks on component mount and when filters change
+onMounted(async () => {
+  await fetchFeedbacks()
+})
+
+// Watch for route changes to update feedbacks
+watch(
+  () => route.query,
+  async () => {
+    await fetchFeedbacks()
   },
-  {
-    id: 2,
-    feedback: 'Would love to see dark mode support in the next update.',
-    date: '2024-02-19',
-    notesCount: 1,
-  },
-  {
-    id: 4,
-    feedback: "Sometimes the extension doesn't load on startup.",
-    date: '2024-02-17',
-    notesCount: 3,
-  },
-  {
-    id: 6,
-    feedback: 'Performance issues reported in the latest version.',
-    date: '2024-02-16',
-    notesCount: 2,
-  },
-  {
-    id: 7,
-    feedback: 'User interface needs improvement for mobile devices.',
-    date: '2024-02-15',
-    notesCount: 1,
-  },
-  {
-    id: 8,
-    feedback: 'Integration with third-party tools requested.',
-    date: '2024-02-14',
-    notesCount: 4,
-  },
-])
+  { deep: true },
+)
+
+// Function to fetch feedbacks with current filters
+const fetchFeedbacks = async () => {
+  try {
+    isLoading.value = true
+    const filters = {
+      type: currentType.value || undefined,
+      status: currentStatus.value || undefined,
+    }
+    feedbacks.value = await firebaseService.getFeedbacks(filters)
+  } catch (error) {
+    console.error('Error loading feedbacks:', error)
+  } finally {
+    isLoading.value = false
+  }
+}
+
+// Get feedback counts
+const feedbackCounts = computed(() => firebaseService.getFeedbackCounts(feedbacks.value))
 
 // Show only the 3 most recent notes
 const recentNotes = computed(() => {
-  return [...feedbacksWithNotes.value]
-    .sort((a, b) => new Date(b.date).getTime() - new Date(a.date).getTime())
+  return feedbacks.value
+    .filter((fb) => fb.notes && fb.notes.length > 0)
+    .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 3)
+    .map((fb) => ({
+      id: fb.id,
+      feedback: fb.text,
+      date: fb.updatedAt.toLocaleDateString(),
+      notesCount: fb.notes?.length || 0,
+    }))
 })
 
 // Calculate total number of notes
 const totalNotes = computed(() => {
-  return feedbacksWithNotes.value.reduce((sum, fb) => sum + fb.notesCount, 0)
+  return feedbacks.value.reduce((sum, fb) => sum + (fb.notes?.length || 0), 0)
 })
 
 // Navigation wrapper that closes sidebar
@@ -470,7 +475,7 @@ const filterByType = (type: string) => {
   emit('close')
 }
 
-const viewFeedback = (id: number) => {
+const viewFeedback = (id: string) => {
   router.push({ name: 'admin-feedback-detail', params: { id } })
   notesOpen.value = false
   emit('close')

@@ -1,131 +1,128 @@
 <template>
-  <div class="p-6">
-    <div class="sm:flex sm:items-center">
-      <div class="sm:flex-auto">
-        <h1 class="text-2xl font-semibold text-gray-900">Feedback</h1>
-        <p class="mt-2 text-sm text-gray-700">
+  <div class="px-4 sm:px-6 lg:px-8">
+    <!-- Header and Actions -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-6">
+      <div class="mb-4 sm:mb-0">
+        <h1 class="text-2xl font-bold text-gray-900">Feedback</h1>
+        <p class="text-gray-600 text-sm mt-1">
           A list of all feedback received from users including their type, rating, and status.
         </p>
       </div>
-      <div class="mt-4 sm:mt-0 sm:ml-16 sm:flex-none">
-        <button
-          type="button"
-          class="inline-flex items-center justify-center rounded-md border border-transparent bg-brand px-4 py-2 text-sm font-medium text-white shadow-sm hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2 sm:w-auto"
-        >
-          Export
-        </button>
-      </div>
+      <button
+        class="bg-brand hover:bg-brand-dark text-white font-semibold px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
+      >
+        Export
+      </button>
     </div>
 
-    <!-- Filters -->
-    <div class="mt-8 flex flex-col sm:flex-row gap-4">
-      <div class="flex-1">
-        <input
-          type="text"
-          placeholder="Search feedback..."
-          class="block w-full rounded-md border border-brand shadow-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none outline-none sm:text-sm px-4 py-2"
-        />
-      </div>
-      <div class="flex gap-4">
+    <!-- Search and Filters -->
+    <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mb-4 gap-2">
+      <input
+        type="text"
+        v-model="searchQuery"
+        placeholder="Search feedback..."
+        class="w-full sm:w-1/3 rounded-md border-0 py-2 pl-4 pr-3 text-gray-900 ring-1 ring-inset ring-gray-300 placeholder:text-gray-400 focus:ring-1 focus:ring-brand focus:border-brand focus:outline-none sm:text-sm sm:leading-6 transition-shadow"
+      />
+      <div class="flex flex-row gap-2 mt-2 sm:mt-0">
         <select
-          class="block w-full rounded-md border border-brand shadow-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none outline-none sm:text-sm px-4 py-2"
+          v-model="typeFilter"
+          class="rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-brand focus:border-brand focus:outline-none sm:text-sm sm:leading-6 transition-shadow"
         >
           <option value="">All Types</option>
           <option value="bug">Bug Reports</option>
           <option value="feature">Feature Requests</option>
-          <option value="other">Other</option>
+          <option value="other">General Feedback</option>
         </select>
         <select
-          class="block w-full rounded-md border border-brand shadow-sm focus:border-brand focus:ring-1 focus:ring-brand focus:outline-none outline-none sm:text-sm px-4 py-2"
+          v-model="ratingFilter"
+          class="rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-brand focus:border-brand focus:outline-none sm:text-sm sm:leading-6 transition-shadow"
         >
           <option value="">All Ratings</option>
-          <option value="terrible">Terrible</option>
-          <option value="bad">Bad</option>
-          <option value="okay">Okay</option>
-          <option value="good">Good</option>
           <option value="amazing">Amazing</option>
+          <option value="good">Good</option>
+          <option value="okay">Okay</option>
+          <option value="bad">Bad</option>
+          <option value="terrible">Terrible</option>
         </select>
       </div>
     </div>
 
-    <!-- Table -->
-    <div class="mt-8 flex flex-col">
-      <div class="-my-2 -mx-4 overflow-x-auto sm:-mx-6 lg:-mx-8">
-        <div class="inline-block min-w-full py-2 align-middle md:px-6 lg:px-8">
-          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 md:rounded-lg">
+    <!-- Loading state -->
+    <div v-if="isLoading" class="flex justify-center items-center h-64">
+      <div class="animate-spin rounded-full h-12 w-12 border-b-2 border-brand"></div>
+    </div>
+
+    <!-- Error state -->
+    <div v-else-if="error" class="text-center py-12">
+      <p class="text-red-600">{{ error }}</p>
+    </div>
+
+    <!-- Empty state -->
+    <div v-else-if="paginatedFeedbacks.length === 0" class="text-center py-12">
+      <p class="text-gray-500">No feedbacks found</p>
+    </div>
+
+    <!-- Feedback list -->
+    <div v-else class="mt-8 flow-root">
+      <div class="-mx-4 -my-2 overflow-x-auto sm:-mx-6 lg:-mx-8">
+        <div class="inline-block min-w-full py-2 align-middle sm:px-6 lg:px-8">
+          <div class="overflow-hidden shadow ring-1 ring-black ring-opacity-5 sm:rounded-lg">
             <table class="min-w-full divide-y divide-gray-300">
               <thead class="bg-gray-50">
                 <tr>
                   <th
-                    scope="col"
                     class="py-3.5 pl-4 pr-3 text-left text-sm font-semibold text-gray-900 sm:pl-6"
                   >
                     Type
                   </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    Rating
-                  </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
+                  <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Rating</th>
+                  <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
                     Feedback
                   </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    Date
-                  </th>
-                  <th scope="col" class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">
-                    Status
-                  </th>
-                  <th scope="col" class="relative py-3.5 pl-3 pr-4 sm:pr-6">
-                    <span class="sr-only">Actions</span>
-                  </th>
+                  <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Date</th>
+                  <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Status</th>
+                  <th class="px-3 py-3.5 text-left text-sm font-semibold text-gray-900">Notes</th>
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="fb in filteredFeedbacks" :key="fb.id">
-                  <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
-                    <div class="flex items-center">
-                      <div class="font-medium text-gray-900">{{ fb.type }}</div>
-                      <div v-if="fb.notesCount > 0" class="ml-2 flex items-center">
-                        <svg
-                          class="h-4 w-4 text-gray-400"
-                          fill="none"
-                          viewBox="0 0 24 24"
-                          stroke="currentColor"
-                        >
-                          <path
-                            stroke-linecap="round"
-                            stroke-linejoin="round"
-                            stroke-width="2"
-                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
-                          />
-                        </svg>
-                      </div>
-                    </div>
+                <tr
+                  v-for="feedback in paginatedFeedbacks"
+                  :key="feedback.id"
+                  class="hover:bg-gray-50 cursor-pointer"
+                  @click="goToDetail(feedback.id)"
+                >
+                  <td
+                    class="whitespace-nowrap py-4 pl-4 pr-3 text-sm font-medium text-gray-900 sm:pl-6"
+                  >
+                    {{ formatFeedbackType(feedback.type) }}
                   </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <span :class="ratingClass(fb.rating)">
-                      {{ fb.rating.charAt(0).toUpperCase() + fb.rating.slice(1) }}
+                  <td class="whitespace-nowrap px-3 py-4 text-sm">
+                    <span :class="ratingClass(feedback.rating)">
+                      {{ feedback.rating.charAt(0).toUpperCase() + feedback.rating.slice(1) }}
                     </span>
                   </td>
                   <td class="px-3 py-4 text-sm text-gray-500">
-                    <div class="max-w-xs truncate">{{ fb.feedback }}</div>
+                    <div class="max-w-xs truncate">{{ feedback.text }}</div>
                   </td>
-                  <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">{{ fb.date }}</td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
-                    <span :class="statusClass(fb.status)">
-                      {{ fb.status.charAt(0).toUpperCase() + fb.status.slice(1) }}
+                    {{ feedback.createdAt.toLocaleDateString() }}
+                  </td>
+                  <td class="whitespace-nowrap px-3 py-4 text-sm">
+                    <span :class="statusClass(feedback.status)">
+                      {{
+                        feedback.status.charAt(0).toUpperCase() +
+                        feedback.status.slice(1).replace('-', ' ')
+                      }}
                     </span>
                   </td>
-                  <td
-                    class="relative whitespace-nowrap py-4 pl-3 pr-4 text-right text-sm font-medium sm:pr-6"
-                  >
-                    <button
-                      class="text-brand hover:text-brand-dark"
-                      @click="
-                        $router.push({ name: 'admin-feedback-detail', params: { id: fb.id } })
-                      "
+                  <td class="whitespace-nowrap px-3 py-4 text-sm text-center">
+                    <span
+                      v-if="feedback.notes && feedback.notes.length > 0"
+                      class="inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800"
                     >
-                      View<span class="sr-only">, feedback</span>
-                    </button>
+                      {{ feedback.notes.length }}
+                    </span>
+                    <span v-else class="text-gray-400">0</span>
                   </td>
                 </tr>
               </tbody>
@@ -133,54 +130,43 @@
           </div>
         </div>
       </div>
-    </div>
-
-    <!-- Pagination -->
-    <div
-      class="mt-4 flex items-center justify-between border-t border-gray-200 bg-white px-4 py-3 sm:px-6"
-    >
-      <div class="flex flex-1 justify-between sm:hidden">
-        <button
-          class="relative inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Previous
-        </button>
-        <button
-          class="relative ml-3 inline-flex items-center rounded-md border border-gray-300 bg-white px-4 py-2 text-sm font-medium text-gray-700 hover:bg-gray-50"
-        >
-          Next
-        </button>
-      </div>
-      <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
-        <div>
-          <p class="text-sm text-gray-700">
-            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of
-            <span class="font-medium">20</span> results
-          </p>
+      <!-- Pagination -->
+      <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between mt-6">
+        <div class="text-sm text-gray-600 mb-2 sm:mb-0">
+          Showing {{ firstItem }} to {{ lastItem }} of {{ filteredFeedbacks.length }} results
         </div>
         <div>
-          <nav class="isolate inline-flex -space-x-px rounded-md shadow-sm" aria-label="Pagination">
+          <nav
+            class="inline-flex rounded-md shadow-sm border border-gray-300 bg-white"
+            aria-label="Pagination"
+          >
             <button
-              class="relative inline-flex items-center rounded-l-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              :disabled="currentPage === 1"
+              @click="currentPage--"
+              class="relative inline-flex items-center px-3 py-2 rounded-l-md text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 focus:outline-none"
             >
               <span class="sr-only">Previous</span>
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
-                  fill-rule="evenodd"
-                  d="M12.79 5.23a.75.75 0 01-.02 1.06L8.832 10l3.938 3.71a.75.75 0 11-1.04 1.08l-4.5-4.25a.75.75 0 010-1.08l4.5-4.25a.75.75 0 011.06.02z"
-                  clip-rule="evenodd"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M15 19l-7-7 7-7"
                 />
               </svg>
             </button>
             <button
-              class="relative inline-flex items-center rounded-r-md px-2 py-2 text-gray-400 ring-1 ring-inset ring-gray-300 hover:bg-gray-50 focus:z-20 focus:outline-offset-0"
+              :disabled="currentPage === totalPages"
+              @click="currentPage++"
+              class="relative inline-flex items-center px-3 py-2 rounded-r-md text-sm font-medium text-gray-500 hover:bg-gray-50 disabled:opacity-50 focus:outline-none"
             >
               <span class="sr-only">Next</span>
-              <svg class="h-5 w-5" viewBox="0 0 20 20" fill="currentColor" aria-hidden="true">
+              <svg class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor">
                 <path
-                  fill-rule="evenodd"
-                  d="M7.21 14.77a.75.75 0 01.02-1.06L11.168 10 7.23 6.29a.75.75 0 111.04-1.08l4.5 4.25a.75.75 0 010 1.08l-4.5 4.25a.75.75 0 01-1.06-.02z"
-                  clip-rule="evenodd"
+                  stroke-linecap="round"
+                  stroke-linejoin="round"
+                  stroke-width="2"
+                  d="M9 5l7 7-7 7"
                 />
               </svg>
             </button>
@@ -192,118 +178,91 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { useRoute } from 'vue-router'
-
-interface Feedback {
-  id: number
-  type: string
-  rating: string
-  feedback: string
-  date: string
-  status: string
-  contact: { name: string; email: string; wantResponse: boolean } | null
-  notesCount: number
-}
+import { ref, computed, onMounted, watch } from 'vue'
+import { useRoute, useRouter } from 'vue-router'
+import { firebaseService } from '@/services/firebase/firebase-service'
+import type { FeedbackWithId } from '@/services/firebase/types'
+import { formatFeedbackType } from '@/utils/feedback'
 
 const route = useRoute()
+const router = useRouter()
+const feedbacks = ref<FeedbackWithId[]>([])
+const isLoading = ref(true)
+const error = ref<string | null>(null)
+const searchQuery = ref('')
+const typeFilter = ref('')
+const ratingFilter = ref('')
 
-// Get the status and type from the URL query parameters
-const currentStatus = computed(() => (route.query.status as string) || '')
-const currentType = computed(() => (route.query.type as string) || '')
-
-// Filter feedbacks based on both status and type query parameters
-const filteredFeedbacks = computed(() => {
-  return feedbacks.value.filter((fb) => {
-    const matchesStatus = !currentStatus.value || fb.status === currentStatus.value
-    const matchesType = !currentType.value || fb.type.toLowerCase().includes(currentType.value)
-    const hasNotes = route.query.hasNotes === 'true' ? fb.notesCount > 0 : true
-    return matchesStatus && matchesType && hasNotes
-  })
+// Pagination
+const currentPage = ref(1)
+const pageSize = 10
+const totalPages = computed(() => Math.ceil(filteredFeedbacks.value.length / pageSize))
+const paginatedFeedbacks = computed(() => {
+  const start = (currentPage.value - 1) * pageSize
+  return filteredFeedbacks.value.slice(start, start + pageSize)
 })
 
-const feedbacks = ref<Feedback[]>([
-  {
-    id: 1,
-    type: 'Bug Report',
-    rating: 'terrible',
-    feedback: 'The extension keeps crashing when I try to use it with multiple tabs...',
-    date: '2024-02-20',
-    status: 'pending',
-    contact: { name: 'John Doe', email: 'john@example.com', wantResponse: true },
-    notesCount: 2,
+const firstItem = computed(() =>
+  filteredFeedbacks.value.length === 0 ? 0 : (currentPage.value - 1) * pageSize + 1,
+)
+const lastItem = computed(() =>
+  Math.min(currentPage.value * pageSize, filteredFeedbacks.value.length),
+)
+
+// Fetch feedbacks on mount and when filters change
+onMounted(async () => {
+  await fetchFeedbacks()
+})
+
+watch(
+  () => route.query,
+  async () => {
+    await fetchFeedbacks()
   },
-  {
-    id: 2,
-    type: 'Feature Request',
-    rating: 'amazing',
-    feedback: 'Would love to see dark mode support in the next update.',
-    date: '2024-02-19',
-    status: 'resolved',
-    contact: { name: 'Jane Smith', email: 'jane@example.com', wantResponse: false },
-    notesCount: 1,
-  },
-  {
-    id: 3,
-    type: 'General Feedback',
-    rating: 'good',
-    feedback: 'Great extension, but it could use more customization options.',
-    date: '2024-02-18',
-    status: 'closed',
-    contact: null,
-    notesCount: 0,
-  },
-  {
-    id: 4,
-    type: 'Bug Report',
-    rating: 'okay',
-    feedback: "Sometimes the extension doesn't load on startup.",
-    date: '2024-02-17',
-    status: 'pending',
-    contact: { name: 'Alex Lee', email: 'alex@example.com', wantResponse: true },
-    notesCount: 3,
-  },
-  {
-    id: 5,
-    type: 'Feature Request',
-    rating: 'bad',
-    feedback: 'The onboarding process is confusing for new users.',
-    date: '2024-02-16',
-    status: 'pending',
-    contact: null,
-    notesCount: 0,
-  },
-  {
-    id: 6,
-    type: 'Note',
-    rating: 'none',
-    feedback: 'Internal note: Need to investigate the crash reports from multiple users.',
-    date: '2024-02-15',
-    status: 'in-progress',
-    contact: null,
-    notesCount: 0,
-  },
-  {
-    id: 7,
-    type: 'Note',
-    rating: 'none',
-    feedback: 'Internal note: Dark mode feature planned for Q2 release.',
-    date: '2024-02-14',
-    status: 'resolved',
-    contact: null,
-    notesCount: 0,
-  },
-  {
-    id: 8,
-    type: 'Note',
-    rating: 'none',
-    feedback: 'Internal note: User onboarding improvements scheduled for next sprint.',
-    date: '2024-02-13',
-    status: 'pending',
-    contact: null,
-    notesCount: 0,
-  },
-])
+  { deep: true },
+)
+
+const fetchFeedbacks = async () => {
+  try {
+    isLoading.value = true
+    error.value = null
+    feedbacks.value = await firebaseService.getFeedbacks()
+  } catch (err) {
+    console.error('Error fetching feedbacks:', err)
+    error.value = 'Failed to load feedbacks'
+  } finally {
+    isLoading.value = false
+  }
+}
+
+const filteredFeedbacks = computed(() => {
+  let filtered = feedbacks.value
+
+  // Apply search filter
+  if (searchQuery.value) {
+    const query = searchQuery.value.toLowerCase()
+    filtered = filtered.filter(
+      (fb) =>
+        fb.text.toLowerCase().includes(query) ||
+        fb.type.toLowerCase().includes(query) ||
+        fb.rating.toLowerCase().includes(query) ||
+        fb.contactInfo?.name?.toLowerCase().includes(query) ||
+        fb.contactInfo?.email?.toLowerCase().includes(query),
+    )
+  }
+
+  // Apply type filter
+  if (typeFilter.value) {
+    filtered = filtered.filter((fb) => fb.type === typeFilter.value)
+  }
+
+  // Apply rating filter
+  if (ratingFilter.value) {
+    filtered = filtered.filter((fb) => fb.rating === ratingFilter.value)
+  }
+
+  return filtered
+})
 
 function ratingClass(rating: string) {
   switch (rating) {
@@ -332,8 +291,14 @@ function statusClass(status: string) {
       return 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800'
     case 'closed':
       return 'inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800'
+    case 'in-progress':
+      return 'inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800'
     default:
       return ''
   }
+}
+
+function goToDetail(id: string) {
+  router.push({ name: 'admin-feedback-detail', params: { id } })
 }
 </script>
