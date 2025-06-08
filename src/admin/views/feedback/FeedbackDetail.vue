@@ -116,12 +116,85 @@
           <div class="bg-white shadow sm:rounded-lg">
             <div class="px-4 py-5 sm:p-6">
               <h3 class="text-lg font-medium leading-6 text-gray-900">Notes</h3>
-              <div class="mt-4">
-                <textarea
-                  rows="4"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
-                  placeholder="Add internal notes here..."
-                ></textarea>
+              <div class="mt-4 space-y-4">
+                <!-- Add Note Form -->
+                <form @submit.prevent="handleAddNote" class="space-y-2">
+                  <textarea
+                    v-model="newNote"
+                    rows="3"
+                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
+                    placeholder="Add internal notes here..."
+                    :disabled="addingNote"
+                  ></textarea>
+                  <div class="flex justify-end">
+                    <button
+                      type="submit"
+                      class="inline-flex items-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50 disabled:cursor-not-allowed"
+                      :disabled="addingNote || !newNote.trim()"
+                    >
+                      <svg
+                        v-if="addingNote"
+                        class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                        xmlns="http://www.w3.org/2000/svg"
+                        fill="none"
+                        viewBox="0 0 24 24"
+                      >
+                        <circle
+                          class="opacity-25"
+                          cx="12"
+                          cy="12"
+                          r="10"
+                          stroke="currentColor"
+                          stroke-width="4"
+                        ></circle>
+                        <path
+                          class="opacity-75"
+                          fill="currentColor"
+                          d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                        ></path>
+                      </svg>
+                      <span v-if="addingNote">Adding...</span>
+                      <span v-else>Add Note</span>
+                    </button>
+                  </div>
+                  <div v-if="addNoteError" class="text-red-500 text-xs mt-1">
+                    {{ addNoteError }}
+                  </div>
+                </form>
+
+                <!-- Notes List -->
+                <div class="relative">
+                  <div v-if="feedback.notes && feedback.notes.length > 0" class="space-y-3">
+                    <div
+                      v-for="(note, index) in displayedNotes"
+                      :key="note.id"
+                      class="border rounded p-3 bg-gray-50"
+                    >
+                      <div class="flex items-center justify-between mb-1">
+                        <span class="text-xs text-gray-500"
+                          >{{ note.adminName }} &middot; {{ formatNoteDate(note.createdAt) }}</span
+                        >
+                      </div>
+                      <div class="text-sm text-gray-800 whitespace-pre-line">
+                        {{ note.content }}
+                      </div>
+                    </div>
+                  </div>
+                  <div v-else class="text-gray-400 text-sm">No notes yet.</div>
+
+                  <!-- Gradient and Show More -->
+                  <div v-if="hasMoreNotes" class="relative">
+                    <div
+                      class="absolute inset-x-0 bottom-0 h-8 bg-gradient-to-t from-white to-transparent"
+                    ></div>
+                    <button
+                      @click="showAllNotes = !showAllNotes"
+                      class="w-full mt-2 text-sm text-brand hover:text-brand-dark font-medium"
+                    >
+                      {{ showAllNotes ? 'Show less' : `Show ${remainingNotesCount} more notes` }}
+                    </button>
+                  </div>
+                </div>
               </div>
             </div>
           </div>
@@ -188,6 +261,7 @@ import { firebaseService } from '@/services/firebase/firebase-service'
 import { getFeedbackById, formatFeedbackType } from '@/utils/feedback'
 import type { FeedbackWithId } from '@/services/firebase/types'
 import { sendFeedbackResponseEmail } from '@/utils/email'
+import { useAdminAuth } from '@/stores/adminAuth'
 
 const route = useRoute()
 const feedbacks = ref<FeedbackWithId[]>([])
@@ -211,6 +285,51 @@ const responseMessage = ref('')
 const isSendingResponse = ref(false)
 const responseError = ref('')
 const responseSuccess = ref('')
+
+const adminAuth = useAdminAuth()
+
+const newNote = ref('')
+const addingNote = ref(false)
+const addNoteError = ref('')
+
+const sortedNotes = computed(() => {
+  return (
+    feedback.value?.notes?.slice().sort((a, b) => b.createdAt.getTime() - a.createdAt.getTime()) ||
+    []
+  )
+})
+
+const showAllNotes = ref(false)
+const NOTES_LIMIT = 4
+
+const displayedNotes = computed(() => {
+  if (!feedback.value?.notes) return []
+  const notes = sortedNotes.value
+  return showAllNotes.value ? notes : notes.slice(0, NOTES_LIMIT)
+})
+
+const hasMoreNotes = computed(() => {
+  return feedback.value?.notes && feedback.value.notes.length > NOTES_LIMIT
+})
+
+const remainingNotesCount = computed(() => {
+  if (!feedback.value?.notes) return 0
+  return feedback.value.notes.length - NOTES_LIMIT
+})
+
+function formatNoteDate(date: any) {
+  if (!date) return ''
+  if (typeof date === 'string') date = new Date(date)
+  if (date instanceof Date) {
+    return (
+      date.toLocaleDateString() +
+      ' ' +
+      date.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })
+    )
+  }
+  if (date.toDate) return date.toDate().toLocaleString()
+  return ''
+}
 
 onMounted(async () => {
   isLoading.value = true
@@ -273,6 +392,26 @@ async function handleSendResponse() {
     responseError.value = 'Failed to send response.'
   } finally {
     isSendingResponse.value = false
+  }
+}
+
+async function handleAddNote() {
+  if (!feedback.value || !newNote.value.trim()) return
+  addingNote.value = true
+  addNoteError.value = ''
+  try {
+    await firebaseService.addNote(feedback.value.id, {
+      content: newNote.value.trim(),
+      adminId: adminAuth.admin?.uid || 'unknown',
+      adminName: adminAuth.admin?.name || 'Admin',
+    })
+    // Refresh feedbacks to get the new note
+    feedbacks.value = await firebaseService.getFeedbacks()
+    newNote.value = ''
+  } catch (err) {
+    addNoteError.value = 'Failed to add note.'
+  } finally {
+    addingNote.value = false
   }
 }
 </script>

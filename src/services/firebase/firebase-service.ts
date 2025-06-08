@@ -14,6 +14,7 @@ import {
 import type { DocumentData } from 'firebase/firestore'
 import { app } from '@/config/firebase-config'
 import type { Feedback, FeedbackWithId, FeedbackNote, FirebaseService } from './types'
+import { v4 as uuidv4 } from 'uuid'
 
 class FirebaseServiceImpl implements FirebaseService {
   private db = getFirestore(app)
@@ -116,21 +117,34 @@ class FirebaseServiceImpl implements FirebaseService {
   }
 
   async addNote(feedbackId: string, note: Omit<FeedbackNote, 'id' | 'createdAt'>): Promise<void> {
-    try {
-      const feedbackRef = doc(this.feedbackCollection, feedbackId)
-      const noteWithTimestamp = {
-        ...note,
-        id: crypto.randomUUID(),
-        createdAt: Timestamp.now(),
-      }
-      await updateDoc(feedbackRef, {
-        notes: arrayUnion(noteWithTimestamp),
-        updatedAt: Timestamp.now(),
-      })
-    } catch (error) {
-      console.error('Error adding note:', error)
-      throw new Error('Failed to add note')
+    const feedbackRef = doc(this.feedbackCollection, feedbackId)
+    const noteWithMeta = {
+      id: uuidv4(),
+      content: note.content,
+      createdAt: Timestamp.now(),
+      adminId: note.adminId,
+      adminName: note.adminName,
     }
+    await updateDoc(feedbackRef, {
+      notes: arrayUnion(noteWithMeta),
+      updatedAt: Timestamp.now(),
+    })
+  }
+
+  async deleteNote(feedbackId: string, noteId: string) {
+    const feedbackRef = doc(this.feedbackCollection, feedbackId)
+    // Get current notes
+    const feedbackSnap = await getDocs(
+      query(this.feedbackCollection, where('__name__', '==', feedbackId)),
+    )
+    const feedbackDoc = feedbackSnap.docs[0]
+    if (!feedbackDoc) return
+    const notes = feedbackDoc.data().notes || []
+    const updatedNotes = notes.filter((n: any) => n.id !== noteId)
+    await updateDoc(feedbackRef, {
+      notes: updatedNotes,
+      updatedAt: Timestamp.now(),
+    })
   }
 
   getFeedbackCounts(feedbacks: FeedbackWithId[]): {
