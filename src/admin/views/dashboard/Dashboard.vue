@@ -68,6 +68,98 @@
           </div>
         </div>
 
+        <!-- Resolved Feedbacks -->
+        <div class="bg-white overflow-hidden rounded-lg shadow">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 rounded-md bg-green-100 p-3">
+                <svg
+                  class="h-6 w-6 text-green-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M5 13l4 4L19 7"
+                  />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Resolved Feedbacks</dt>
+                  <dd class="flex items-baseline">
+                    <div class="text-2xl font-semibold text-gray-900">789</div>
+                    <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
+                      <svg
+                        class="h-5 w-5 flex-shrink-0 self-center text-green-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <span class="sr-only">Increased by</span>
+                      8%
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
+        <!-- Pending Feedbacks -->
+        <div class="bg-white overflow-hidden rounded-lg shadow">
+          <div class="p-5">
+            <div class="flex items-center">
+              <div class="flex-shrink-0 rounded-md bg-yellow-100 p-3">
+                <svg
+                  class="h-6 w-6 text-yellow-600"
+                  fill="none"
+                  viewBox="0 0 24 24"
+                  stroke="currentColor"
+                >
+                  <path
+                    stroke-linecap="round"
+                    stroke-linejoin="round"
+                    stroke-width="2"
+                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
+                  />
+                </svg>
+              </div>
+              <div class="ml-5 w-0 flex-1">
+                <dl>
+                  <dt class="text-sm font-medium text-gray-500 truncate">Pending Feedbacks</dt>
+                  <dd class="flex items-baseline">
+                    <div class="text-2xl font-semibold text-gray-900">23</div>
+                    <div class="ml-2 flex items-baseline text-sm font-semibold text-red-600">
+                      <svg
+                        class="h-5 w-5 flex-shrink-0 self-center text-red-500"
+                        viewBox="0 0 20 20"
+                        fill="currentColor"
+                      >
+                        <path
+                          fill-rule="evenodd"
+                          d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z"
+                          clip-rule="evenodd"
+                        />
+                      </svg>
+                      <span class="sr-only">Increased by</span>
+                      8
+                    </div>
+                  </dd>
+                </dl>
+              </div>
+            </div>
+          </div>
+        </div>
+
         <!-- Average Rating -->
         <div class="bg-white overflow-hidden rounded-lg shadow">
           <div class="p-5">
@@ -113,140 +205,55 @@
             </div>
           </div>
         </div>
-
-        <!-- Response Rate -->
-        <div class="bg-white overflow-hidden rounded-lg shadow">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 rounded-md bg-blue-100 p-3">
-                <svg
-                  class="h-6 w-6 text-blue-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M8 12h.01M12 12h.01M16 12h.01M21 12c0 4.418-4.03 8-9 8a9.863 9.863 0 01-4.255-.949L3 20l1.395-3.72C3.512 15.042 3 13.574 3 12c0-4.418 4.03-8 9-8s9 3.582 9 8z"
-                  />
-                </svg>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Response Rate</dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">89%</div>
-                    <div class="ml-2 flex items-baseline text-sm font-semibold text-green-600">
-                      <svg
-                        class="h-5 w-5 flex-shrink-0 self-center text-green-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 17a.75.75 0 01-.75-.75V5.612L5.29 9.77a.75.75 0 01-1.08-1.04l5.25-5.5a.75.75 0 011.08 0l5.25 5.5a.75.75 0 11-1.08 1.04l-3.96-4.158V16.25A.75.75 0 0110 17z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      <span class="sr-only">Increased by</span>
-                      5%
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
-
-        <!-- Pending Reviews -->
-        <div class="bg-white overflow-hidden rounded-lg shadow">
-          <div class="p-5">
-            <div class="flex items-center">
-              <div class="flex-shrink-0 rounded-md bg-yellow-100 p-3">
-                <svg
-                  class="h-6 w-6 text-yellow-600"
-                  fill="none"
-                  viewBox="0 0 24 24"
-                  stroke="currentColor"
-                >
-                  <path
-                    stroke-linecap="round"
-                    stroke-linejoin="round"
-                    stroke-width="2"
-                    d="M12 8v4l3 3m6-3a9 9 0 11-18 0 9 9 0 0118 0z"
-                  />
-                </svg>
-              </div>
-              <div class="ml-5 w-0 flex-1">
-                <dl>
-                  <dt class="text-sm font-medium text-gray-500 truncate">Pending Reviews</dt>
-                  <dd class="flex items-baseline">
-                    <div class="text-2xl font-semibold text-gray-900">23</div>
-                    <div class="ml-2 flex items-baseline text-sm font-semibold text-red-600">
-                      <svg
-                        class="h-5 w-5 flex-shrink-0 self-center text-red-500"
-                        viewBox="0 0 20 20"
-                        fill="currentColor"
-                      >
-                        <path
-                          fill-rule="evenodd"
-                          d="M10 3a.75.75 0 01.75.75v10.638l3.96-4.158a.75.75 0 111.08 1.04l-5.25 5.5a.75.75 0 01-1.08 0l-5.25-5.5a.75.75 0 111.08-1.04l3.96 4.158V3.75A.75.75 0 0110 3z"
-                          clip-rule="evenodd"
-                        />
-                      </svg>
-                      <span class="sr-only">Increased by</span>
-                      8
-                    </div>
-                  </dd>
-                </dl>
-              </div>
-            </div>
-          </div>
-        </div>
       </div>
 
       <!-- Recent Activity and Feedback Distribution -->
-      <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <!-- Recent Activity -->
-        <div class="bg-white shadow rounded-lg">
+      <div class="mt-8 grid grid-cols-1 gap-6 lg:grid-cols-3">
+        <!-- Recent Feedback -->
+        <div class="bg-white shadow rounded-lg lg:col-span-1">
           <div class="p-6">
-            <h2 class="text-lg font-medium text-gray-900">Recent Activity</h2>
+            <h2 class="text-lg font-medium text-gray-900">Recent Feedback</h2>
             <div class="mt-6 flow-root">
               <ul role="list" class="-my-5 divide-y divide-gray-200">
-                <li v-for="activity in recentActivity" :key="activity.id" class="py-4">
-                  <div class="flex items-center space-x-4">
-                    <div class="flex-shrink-0">
-                      <span
-                        class="inline-flex h-8 w-8 items-center justify-center rounded-full"
-                        :class="activity.bgColor"
-                      >
-                        <span class="text-lg">{{ activity.icon }}</span>
-                      </span>
+                <li v-for="feedback in recentFeedback" :key="feedback.id" class="py-4">
+                  <router-link
+                    :to="`/admin/feedback/${feedback.id}`"
+                    class="block hover:bg-gray-50"
+                  >
+                    <div class="flex items-center space-x-4">
+                      <div class="flex-shrink-0">
+                        <span
+                          class="inline-flex h-8 w-8 items-center justify-center rounded-full"
+                          :class="feedback.bgColor"
+                        >
+                          <span class="text-lg">{{ feedback.icon }}</span>
+                        </span>
+                      </div>
+                      <div class="min-w-0 flex-1">
+                        <p class="truncate text-sm font-medium text-gray-900">
+                          {{ feedback.type }}
+                        </p>
+                        <p class="truncate text-sm text-gray-500">{{ feedback.description }}</p>
+                      </div>
+                      <div class="flex-shrink-0 text-sm text-gray-500">{{ feedback.time }}</div>
                     </div>
-                    <div class="min-w-0 flex-1">
-                      <p class="truncate text-sm font-medium text-gray-900">{{ activity.title }}</p>
-                      <p class="truncate text-sm text-gray-500">{{ activity.description }}</p>
-                    </div>
-                    <div class="flex-shrink-0 text-sm text-gray-500">{{ activity.time }}</div>
-                  </div>
+                  </router-link>
                 </li>
               </ul>
             </div>
             <div class="mt-6">
-              <a
-                href="#"
+              <router-link
+                to="/admin/feedback"
                 class="flex w-full items-center justify-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-brand shadow-sm ring-1 ring-inset ring-brand hover:bg-gray-50"
               >
-                View all activity
-              </a>
+                View all feedback
+              </router-link>
             </div>
           </div>
         </div>
 
         <!-- Feedback Distribution -->
-        <div class="bg-white shadow rounded-lg">
+        <div class="bg-white shadow rounded-lg lg:col-span-1">
           <div class="p-6">
             <h2 class="text-lg font-medium text-gray-900">Feedback Distribution</h2>
             <div class="mt-6">
@@ -271,18 +278,49 @@
             </div>
           </div>
         </div>
+
+        <!-- Rating Distribution -->
+        <div class="bg-white shadow rounded-lg lg:col-span-1">
+          <div class="p-6">
+            <h2 class="text-lg font-medium text-gray-900">Rating Distribution</h2>
+            <div class="mt-6">
+              <div class="space-y-4">
+                <div
+                  v-for="rating in ratingDistribution"
+                  :key="rating.name"
+                  class="flex items-center"
+                >
+                  <div class="flex-1">
+                    <div class="flex items-center">
+                      <span class="text-lg mr-2">{{ rating.icon }}</span>
+                      <span class="text-sm font-medium text-gray-900">{{ rating.name }}</span>
+                    </div>
+                    <div class="mt-1 w-full bg-gray-200 rounded-full h-2">
+                      <div
+                        class="h-2 rounded-full"
+                        :class="rating.color"
+                        :style="{ width: rating.percentage + '%' }"
+                      ></div>
+                    </div>
+                  </div>
+                  <div class="ml-4 text-sm font-medium text-gray-900">{{ rating.percentage }}%</div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
   </div>
 </template>
 
 <script setup lang="ts">
-// Dummy data for recent activity
-const recentActivity = [
+// Dummy data for recent feedback
+const recentFeedback = [
   {
     id: 1,
     icon: '🐛',
-    title: 'New Bug Report',
+    type: 'Bug Report',
     description: 'Extension crashes with multiple tabs',
     time: '2m ago',
     bgColor: 'bg-red-100',
@@ -290,7 +328,7 @@ const recentActivity = [
   {
     id: 2,
     icon: '✨',
-    title: 'Feature Request',
+    type: 'Feature Request',
     description: 'Add dark mode support',
     time: '15m ago',
     bgColor: 'bg-purple-100',
@@ -298,7 +336,7 @@ const recentActivity = [
   {
     id: 3,
     icon: '💭',
-    title: 'General Feedback',
+    type: 'General Feedback',
     description: 'Great extension, but needs more customization',
     time: '1h ago',
     bgColor: 'bg-blue-100',
@@ -306,7 +344,7 @@ const recentActivity = [
   {
     id: 4,
     icon: '✅',
-    title: 'Feedback Resolved',
+    type: 'Resolved Feedback',
     description: 'Fixed tab management issue',
     time: '2h ago',
     bgColor: 'bg-green-100',
@@ -332,6 +370,40 @@ const feedbackTypes = [
     icon: '💭',
     percentage: 25,
     color: 'bg-blue-500',
+  },
+]
+
+// Dummy data for rating distribution
+const ratingDistribution = [
+  {
+    name: 'Amazing',
+    icon: '😄',
+    percentage: 35,
+    color: 'bg-green-500',
+  },
+  {
+    name: 'Good',
+    icon: '🙂',
+    percentage: 25,
+    color: 'bg-blue-500',
+  },
+  {
+    name: 'Okay',
+    icon: '😐',
+    percentage: 20,
+    color: 'bg-yellow-500',
+  },
+  {
+    name: 'Bad',
+    icon: '😕',
+    percentage: 15,
+    color: 'bg-orange-500',
+  },
+  {
+    name: 'Terrible',
+    icon: '😫',
+    percentage: 5,
+    color: 'bg-red-500',
   },
 ]
 </script>

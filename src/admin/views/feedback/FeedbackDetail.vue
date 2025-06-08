@@ -150,6 +150,23 @@
 import { computed } from 'vue'
 import { useRoute } from 'vue-router'
 
+interface Contact {
+  name: string
+  email: string
+  wantResponse: boolean
+}
+
+interface Feedback {
+  id: number
+  type: string
+  rating: string
+  feedback: string
+  date: string
+  status: string
+  contact: Contact | null
+  notesCount: number
+}
+
 // Simulate the same feedbacks array as in FeedbackList.vue
 const feedbacks = [
   {
@@ -159,7 +176,8 @@ const feedbacks = [
     feedback: 'The extension keeps crashing when I try to use it with multiple tabs...',
     date: '2024-02-20',
     status: 'pending',
-    contact: { name: 'John Doe', email: 'john@example.com' },
+    contact: { name: 'John Doe', email: 'john@example.com', wantResponse: true },
+    notesCount: 2,
   },
   {
     id: 2,
@@ -168,7 +186,8 @@ const feedbacks = [
     feedback: 'Would love to see dark mode support in the next update.',
     date: '2024-02-19',
     status: 'resolved',
-    contact: { name: 'Jane Smith', email: 'jane@example.com' },
+    contact: { name: 'Jane Smith', email: 'jane@example.com', wantResponse: false },
+    notesCount: 1,
   },
   {
     id: 3,
@@ -178,6 +197,7 @@ const feedbacks = [
     date: '2024-02-18',
     status: 'closed',
     contact: null,
+    notesCount: 0,
   },
   {
     id: 4,
@@ -186,7 +206,8 @@ const feedbacks = [
     feedback: "Sometimes the extension doesn't load on startup.",
     date: '2024-02-17',
     status: 'pending',
-    contact: { name: 'Alex Lee', email: 'alex@example.com' },
+    contact: { name: 'Alex Lee', email: 'alex@example.com', wantResponse: true },
+    notesCount: 3,
   },
   {
     id: 5,
@@ -196,6 +217,7 @@ const feedbacks = [
     date: '2024-02-16',
     status: 'pending',
     contact: null,
+    notesCount: 0,
   },
 ]
 
@@ -203,7 +225,7 @@ const route = useRoute()
 const feedbackId = computed(() => Number(route.params.id))
 const feedback = computed(() => feedbacks.find((fb) => fb.id === feedbackId.value))
 
-function ratingClass(rating) {
+function ratingClass(rating: string) {
   switch (rating) {
     case 'terrible':
       return 'inline-flex items-center rounded-full bg-red-100 px-2.5 py-0.5 text-xs font-medium text-red-800'
@@ -215,6 +237,8 @@ function ratingClass(rating) {
       return 'inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800'
     case 'amazing':
       return 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800'
+    case 'none':
+      return 'inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800'
     default:
       return ''
   }

@@ -58,9 +58,9 @@
         ></div>
         <!-- Drawer -->
         <div class="relative flex w-64 flex-1 flex-col bg-white shadow-xl">
-          <div class="absolute top-0 right-0 -mr-12 pt-2">
+          <div class="absolute top-0 right-0 pt-2 pr-2">
             <button
-              class="ml-1 flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand"
+              class="flex h-10 w-10 items-center justify-center rounded-full focus:outline-none focus:ring-2 focus:ring-inset focus:ring-brand"
               @click="sidebarOpen = false"
               aria-label="Close sidebar"
             >

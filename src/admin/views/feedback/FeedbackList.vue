@@ -80,10 +80,25 @@
                 </tr>
               </thead>
               <tbody class="divide-y divide-gray-200 bg-white">
-                <tr v-for="fb in feedbacks" :key="fb.id">
+                <tr v-for="fb in filteredFeedbacks" :key="fb.id">
                   <td class="whitespace-nowrap py-4 pl-4 pr-3 text-sm sm:pl-6">
                     <div class="flex items-center">
                       <div class="font-medium text-gray-900">{{ fb.type }}</div>
+                      <div v-if="fb.notesCount > 0" class="ml-2 flex items-center">
+                        <svg
+                          class="h-4 w-4 text-gray-400"
+                          fill="none"
+                          viewBox="0 0 24 24"
+                          stroke="currentColor"
+                        >
+                          <path
+                            stroke-linecap="round"
+                            stroke-linejoin="round"
+                            stroke-width="2"
+                            d="M11 5H6a2 2 0 00-2 2v11a2 2 0 002 2h11a2 2 0 002-2v-5m-1.414-9.414a2 2 0 112.828 2.828L11.828 15H9v-2.828l8.586-8.586z"
+                          />
+                        </svg>
+                      </div>
                     </div>
                   </td>
                   <td class="whitespace-nowrap px-3 py-4 text-sm text-gray-500">
@@ -139,8 +154,8 @@
       <div class="hidden sm:flex sm:flex-1 sm:items-center sm:justify-between">
         <div>
           <p class="text-sm text-gray-700">
-            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of{'
-            '} <span class="font-medium">20</span> results
+            Showing <span class="font-medium">1</span> to <span class="font-medium">10</span> of
+            <span class="font-medium">20</span> results
           </p>
         </div>
         <div>
@@ -177,9 +192,37 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRoute } from 'vue-router'
 
-const feedbacks = ref([
+interface Feedback {
+  id: number
+  type: string
+  rating: string
+  feedback: string
+  date: string
+  status: string
+  contact: { name: string; email: string; wantResponse: boolean } | null
+  notesCount: number
+}
+
+const route = useRoute()
+
+// Get the status and type from the URL query parameters
+const currentStatus = computed(() => (route.query.status as string) || '')
+const currentType = computed(() => (route.query.type as string) || '')
+
+// Filter feedbacks based on both status and type query parameters
+const filteredFeedbacks = computed(() => {
+  return feedbacks.value.filter((fb) => {
+    const matchesStatus = !currentStatus.value || fb.status === currentStatus.value
+    const matchesType = !currentType.value || fb.type.toLowerCase().includes(currentType.value)
+    const hasNotes = route.query.hasNotes === 'true' ? fb.notesCount > 0 : true
+    return matchesStatus && matchesType && hasNotes
+  })
+})
+
+const feedbacks = ref<Feedback[]>([
   {
     id: 1,
     type: 'Bug Report',
@@ -188,6 +231,7 @@ const feedbacks = ref([
     date: '2024-02-20',
     status: 'pending',
     contact: { name: 'John Doe', email: 'john@example.com', wantResponse: true },
+    notesCount: 2,
   },
   {
     id: 2,
@@ -197,6 +241,7 @@ const feedbacks = ref([
     date: '2024-02-19',
     status: 'resolved',
     contact: { name: 'Jane Smith', email: 'jane@example.com', wantResponse: false },
+    notesCount: 1,
   },
   {
     id: 3,
@@ -206,6 +251,7 @@ const feedbacks = ref([
     date: '2024-02-18',
     status: 'closed',
     contact: null,
+    notesCount: 0,
   },
   {
     id: 4,
@@ -215,6 +261,7 @@ const feedbacks = ref([
     date: '2024-02-17',
     status: 'pending',
     contact: { name: 'Alex Lee', email: 'alex@example.com', wantResponse: true },
+    notesCount: 3,
   },
   {
     id: 5,
@@ -224,6 +271,37 @@ const feedbacks = ref([
     date: '2024-02-16',
     status: 'pending',
     contact: null,
+    notesCount: 0,
+  },
+  {
+    id: 6,
+    type: 'Note',
+    rating: 'none',
+    feedback: 'Internal note: Need to investigate the crash reports from multiple users.',
+    date: '2024-02-15',
+    status: 'in-progress',
+    contact: null,
+    notesCount: 0,
+  },
+  {
+    id: 7,
+    type: 'Note',
+    rating: 'none',
+    feedback: 'Internal note: Dark mode feature planned for Q2 release.',
+    date: '2024-02-14',
+    status: 'resolved',
+    contact: null,
+    notesCount: 0,
+  },
+  {
+    id: 8,
+    type: 'Note',
+    rating: 'none',
+    feedback: 'Internal note: User onboarding improvements scheduled for next sprint.',
+    date: '2024-02-13',
+    status: 'pending',
+    contact: null,
+    notesCount: 0,
   },
 ])
 
@@ -239,6 +317,8 @@ function ratingClass(rating: string) {
       return 'inline-flex items-center rounded-full bg-blue-100 px-2.5 py-0.5 text-xs font-medium text-blue-800'
     case 'amazing':
       return 'inline-flex items-center rounded-full bg-green-100 px-2.5 py-0.5 text-xs font-medium text-green-800'
+    case 'none':
+      return 'inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800'
     default:
       return ''
   }
