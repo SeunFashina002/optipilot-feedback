@@ -257,6 +257,8 @@ const submitFeedback = async () => {
             email: userEmail.value,
           }
         : undefined,
+      status: 'pending',
+      updatedAt: new Date(),
     })
     showSuccessModal.value = true
   } catch (error) {
