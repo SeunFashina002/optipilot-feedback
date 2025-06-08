@@ -1,6 +1,7 @@
 import { createRouter, createWebHistory } from 'vue-router'
 import type { RouteRecordRaw } from 'vue-router'
 import { adminRoutes } from '@/admin/router/routes'
+import { adminAuthGuard } from './guards/adminAuth'
 
 const routes: RouteRecordRaw[] = [
   ...adminRoutes,
@@ -23,10 +24,9 @@ const router = createRouter({
 })
 
 // Add navigation guard to protect admin routes
-router.beforeEach((to, from, next) => {
+router.beforeEach(async (to, from, next) => {
   if (to.path.startsWith('/admin')) {
-    // TODO: Add authentication check here
-    next()
+    await adminAuthGuard(to, from, next)
   } else {
     next()
   }

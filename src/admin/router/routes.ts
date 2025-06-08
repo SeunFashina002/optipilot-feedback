@@ -15,6 +15,10 @@ export const adminRoutes: RouteRecordRaw[] = [
     children: [
       {
         path: '',
+        redirect: '/admin/dashboard',
+      },
+      {
+        path: 'dashboard',
         name: 'admin-dashboard',
         component: Dashboard,
         meta: {
@@ -43,8 +47,8 @@ export const adminRoutes: RouteRecordRaw[] = [
     ],
   },
   {
-    path: '/admin/sign-in',
-    name: 'admin-sign-in',
+    path: '/admin/signin',
+    name: 'admin-signin',
     component: SignIn,
     meta: {
       title: 'Sign In',

@@ -15,13 +15,15 @@
   "dependencies": {
     "@types/yup": "^0.29.14",
     "canvas-confetti": "^1.9.3",
+    "dotenv": "^16.5.0",
     "firebase": "^11.9.0",
     "formik": "^2.4.6",
     "pinia": "^3.0.1",
     "vee-validate": "^4.15.0",
     "vue": "^3.5.13",
     "vue-router": "^4.5.0",
-    "yup": "^1.6.1"
+    "yup": "^1.6.1",
+    "zustand": "^5.0.5"
   },
   "devDependencies": {
     "@tsconfig/node22": "^22.0.1",

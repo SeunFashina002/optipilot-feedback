@@ -8,6 +8,11 @@
 
     <div class="mt-8 sm:mx-auto sm:w-full sm:max-w-md">
       <div class="py-8 px-4 sm:bg-white sm:shadow sm:rounded-lg sm:px-10">
+        <!-- General error message -->
+        <div v-if="generalError" class="mb-4 p-3 bg-red-50 border border-red-200 rounded-md">
+          <p class="text-sm text-red-600">{{ generalError }}</p>
+        </div>
+
         <form class="space-y-6" @submit.prevent="handleSubmit">
           <BaseInput
             v-model="email"
@@ -16,6 +21,7 @@
             :error="emailError"
             autocomplete="email"
             required
+            @blur="validateEmail(email)"
           />
 
           <div>
@@ -27,6 +33,7 @@
                 :error="passwordError"
                 autocomplete="current-password"
                 required
+                @blur="validatePassword(password)"
               />
               <button
                 type="button"
@@ -67,7 +74,7 @@
             </div>
           </div>
 
-          <div class="flex items-center justify-between">
+          <!-- <div class="flex items-center justify-between">
             <div class="flex items-center">
               <input
                 id="remember-me"
@@ -80,16 +87,16 @@
                 Remember me
               </label>
             </div>
-          </div>
+          </div> -->
 
           <div>
             <button
               type="submit"
-              :disabled="isLoading"
+              :disabled="!isFormValid || adminAuth.isLoading"
               class="w-full flex justify-center py-2 px-4 border border-transparent rounded-md shadow-sm text-sm font-medium text-white bg-brand hover:bg-brand-dark focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-brand disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <svg
-                v-if="isLoading"
+                v-if="adminAuth.isLoading"
                 class="animate-spin -ml-1 mr-3 h-5 w-5 text-white"
                 xmlns="http://www.w3.org/2000/svg"
                 fill="none"
@@ -109,7 +116,7 @@
                   d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
                 ></path>
               </svg>
-              {{ isLoading ? 'Signing in...' : 'Sign in' }}
+              {{ adminAuth.isLoading ? 'Signing in...' : 'Sign in' }}
             </button>
           </div>
         </form>
@@ -119,55 +126,87 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import BaseInput from '@/components/BaseInput.vue'
+import { useAdminAuth } from '@/stores/adminAuth'
+
+const router = useRouter()
+const adminAuth = useAdminAuth()
 
 // Form state
 const email = ref('')
 const password = ref('')
 const rememberMe = ref(false)
 const showPassword = ref(false)
-const isLoading = ref(false)
 
 // Error states
 const emailError = ref('')
 const passwordError = ref('')
+const generalError = ref('')
+
+// Computed
+const isFormValid = computed(() => {
+  return email.value && password.value && !emailError.value && !passwordError.value
+})
+
+// Validation methods
+const validateEmail = (value: string): boolean => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
+  if (!value) {
+    emailError.value = 'Email is required'
+    return false
+  }
+  if (!emailRegex.test(value)) {
+    emailError.value = 'Please enter a valid email address'
+    return false
+  }
+  emailError.value = ''
+  return true
+}
+
+const validatePassword = (value: string): boolean => {
+  if (!value) {
+    passwordError.value = 'Password is required'
+    return false
+  }
+  if (value.length < 6) {
+    passwordError.value = 'Password must be at least 6 characters'
+    return false
+  }
+  passwordError.value = ''
+  return true
+}
 
 // Methods
 const togglePasswordVisibility = () => {
   showPassword.value = !showPassword.value
 }
 
-const handleSubmit = async () => {
-  // Reset errors
+const resetErrors = () => {
   emailError.value = ''
   passwordError.value = ''
+  generalError.value = ''
+}
 
-  // Basic validation
-  if (!email.value) {
-    emailError.value = 'Email is required'
+const handleSubmit = async () => {
+  resetErrors()
+
+  // Validate form
+  const isEmailValid = validateEmail(email.value)
+  const isPasswordValid = validatePassword(password.value)
+
+  if (!isEmailValid || !isPasswordValid) {
     return
   }
-
-  if (!password.value) {
-    passwordError.value = 'Password is required'
-    return
-  }
-
-  isLoading.value = true
 
   try {
-    // TODO: Implement Firebase authentication
-    console.log('Sign in with:', {
-      email: email.value,
-      password: password.value,
-      rememberMe: rememberMe.value,
-    })
+    await adminAuth.signIn(email.value, password.value)
+    router.push('/admin/dashboard')
   } catch (error) {
-    // TODO: Handle authentication errors
-    console.error('Sign in error:', error)
-  } finally {
-    isLoading.value = false
+    // The error is already handled in the store
+    generalError.value = adminAuth.error || 'An error occurred during sign in'
+    console.error('Sign in error in component:', error)
   }
 }
 </script>
