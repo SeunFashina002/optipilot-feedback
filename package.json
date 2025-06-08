@@ -13,6 +13,7 @@
     "format": "prettier --write src/"
   },
   "dependencies": {
+    "@emailjs/browser": "^4.4.1",
     "@types/yup": "^0.29.14",
     "canvas-confetti": "^1.9.3",
     "date-fns": "^4.1.0",

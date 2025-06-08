@@ -97,12 +97,17 @@
                 <select
                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
                   v-model="feedback.status"
+                  @change="handleStatusChange"
+                  :disabled="updatingStatus"
                 >
                   <option value="pending">Pending</option>
                   <option value="in-progress">In Progress</option>
                   <option value="resolved">Resolved</option>
                   <option value="closed">Closed</option>
                 </select>
+                <div v-if="statusError" class="text-red-500 text-sm mt-2">
+                  {{ statusError }}
+                </div>
               </div>
             </div>
           </div>
@@ -129,14 +134,41 @@
                 <textarea
                   rows="4"
                   class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
+                  v-model="responseMessage"
                   placeholder="Write your response to the user..."
                 ></textarea>
                 <div class="mt-4 flex justify-end">
                   <button
                     type="button"
-                    class="inline-flex items-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
+                    class="inline-flex items-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand disabled:opacity-50 disabled:cursor-not-allowed"
+                    @click="handleSendResponse"
+                    :disabled="
+                      isSendingResponse || !feedback.contactInfo?.email || !responseMessage.trim()
+                    "
                   >
-                    Send Response
+                    <svg
+                      v-if="isSendingResponse"
+                      class="animate-spin -ml-1 mr-2 h-4 w-4 text-white"
+                      xmlns="http://www.w3.org/2000/svg"
+                      fill="none"
+                      viewBox="0 0 24 24"
+                    >
+                      <circle
+                        class="opacity-25"
+                        cx="12"
+                        cy="12"
+                        r="10"
+                        stroke="currentColor"
+                        stroke-width="4"
+                      ></circle>
+                      <path
+                        class="opacity-75"
+                        fill="currentColor"
+                        d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"
+                      ></path>
+                    </svg>
+                    <span v-if="isSendingResponse">Sending...</span>
+                    <span v-else>Send Response</span>
                   </button>
                 </div>
               </div>
@@ -155,6 +187,7 @@ import { useRoute } from 'vue-router'
 import { firebaseService } from '@/services/firebase/firebase-service'
 import { getFeedbackById, formatFeedbackType } from '@/utils/feedback'
 import type { FeedbackWithId } from '@/services/firebase/types'
+import { sendFeedbackResponseEmail } from '@/utils/email'
 
 const route = useRoute()
 const feedbacks = ref<FeedbackWithId[]>([])
@@ -170,6 +203,14 @@ const formattedDate = computed(() =>
     ? `${feedback.value.createdAt.toLocaleDateString()} ${feedback.value.createdAt.toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' })}`
     : '',
 )
+
+const updatingStatus = ref(false)
+const statusError = ref('')
+
+const responseMessage = ref('')
+const isSendingResponse = ref(false)
+const responseError = ref('')
+const responseSuccess = ref('')
 
 onMounted(async () => {
   isLoading.value = true
@@ -193,6 +234,45 @@ function ratingClass(rating: string) {
       return 'inline-flex items-center rounded-full bg-gray-100 px-2.5 py-0.5 text-xs font-medium text-gray-800'
     default:
       return ''
+  }
+}
+
+async function handleStatusChange(event: Event) {
+  if (!feedback.value) return
+  const target = event.target as HTMLSelectElement | null
+  if (!target) return
+  const newStatus = target.value as 'pending' | 'in-progress' | 'resolved' | 'closed'
+  updatingStatus.value = true
+  statusError.value = ''
+  try {
+    await firebaseService.updateFeedbackStatus(feedback.value.id, newStatus)
+    feedback.value.status = newStatus // update local
+  } catch (err) {
+    statusError.value = 'Failed to update status.'
+  } finally {
+    updatingStatus.value = false
+  }
+}
+
+async function handleSendResponse() {
+  if (!feedback.value || !feedback.value.contactInfo?.email || !responseMessage.value.trim()) return
+  isSendingResponse.value = true
+  responseError.value = ''
+  responseSuccess.value = ''
+  try {
+    await sendFeedbackResponseEmail({
+      toEmail: feedback.value.contactInfo.email,
+      toName: feedback.value.contactInfo.name,
+      message: responseMessage.value,
+      feedbackType: formattedType.value,
+      feedbackText: feedback.value.text,
+    })
+    responseSuccess.value = 'Response sent successfully!'
+    responseMessage.value = ''
+  } catch (err) {
+    responseError.value = 'Failed to send response.'
+  } finally {
+    isSendingResponse.value = false
   }
 }
 </script>
