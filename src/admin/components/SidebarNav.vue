@@ -374,7 +374,8 @@ const router = useRouter()
 const adminAuth = useAdminAuth()
 const statusOpen = ref(false)
 const notesOpen = ref(false)
-const feedbacks = ref<FeedbackWithId[]>([])
+const allFeedbacks = ref<FeedbackWithId[]>([])
+const filteredFeedbacks = ref<FeedbackWithId[]>([])
 const isLoading = ref(true)
 
 const currentStatus = computed(() => (route.query.status as string) || '')
@@ -408,11 +409,15 @@ watch(
 const fetchFeedbacks = async () => {
   try {
     isLoading.value = true
+    // Always fetch all feedbacks for accurate counts
+    allFeedbacks.value = await firebaseService.getFeedbacks()
+    
+    // Apply filters for display
     const filters = {
       type: currentType.value || undefined,
       status: currentStatus.value || undefined,
     }
-    feedbacks.value = await firebaseService.getFeedbacks(filters)
+    filteredFeedbacks.value = await firebaseService.getFeedbacks(filters)
   } catch (error) {
     console.error('Error loading feedbacks:', error)
   } finally {
@@ -420,12 +425,12 @@ const fetchFeedbacks = async () => {
   }
 }
 
-// Get feedback counts
-const feedbackCounts = computed(() => firebaseService.getFeedbackCounts(feedbacks.value))
+// Get feedback counts from all feedbacks
+const feedbackCounts = computed(() => firebaseService.getFeedbackCounts(allFeedbacks.value))
 
-// Show only the 3 most recent notes
+// Show only the 3 most recent notes from filtered feedbacks
 const recentNotes = computed(() => {
-  return feedbacks.value
+  return filteredFeedbacks.value
     .filter((fb) => fb.notes && fb.notes.length > 0)
     .sort((a, b) => b.updatedAt.getTime() - a.updatedAt.getTime())
     .slice(0, 3)
@@ -437,9 +442,9 @@ const recentNotes = computed(() => {
     }))
 })
 
-// Calculate total number of notes
+// Calculate total number of notes from filtered feedbacks
 const totalNotes = computed(() => {
-  return feedbacks.value.reduce((sum, fb) => sum + (fb.notes?.length || 0), 0)
+  return filteredFeedbacks.value.reduce((sum, fb) => sum + (fb.notes?.length || 0), 0)
 })
 
 // Navigation wrapper that closes sidebar
@@ -451,9 +456,15 @@ const navigateTo = (path: string) => {
 const filterByStatus = (status: string) => {
   // If clicking the same status, clear the filter
   if (currentStatus.value === status) {
-    router.push({ query: { ...route.query, status: undefined } })
+    router.push({
+      name: 'admin-feedback-list',
+      query: {}, // Clear all query parameters
+    })
   } else {
-    router.push({ query: { ...route.query, status } })
+    router.push({
+      name: 'admin-feedback-list',
+      query: { status }, // Only set the status parameter
+    })
   }
   statusOpen.value = false
   emit('close')
