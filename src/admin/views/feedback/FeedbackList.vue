@@ -25,6 +25,16 @@
       />
       <div class="flex flex-row gap-2 mt-2 sm:mt-0">
         <select
+          v-model="statusFilter"
+          class="rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-brand focus:border-brand focus:outline-none sm:text-sm sm:leading-6 transition-shadow"
+        >
+          <option value="">All Status</option>
+          <option value="pending">Pending</option>
+          <option value="in-progress">In Progress</option>
+          <option value="resolved">Resolved</option>
+          <option value="closed">Closed</option>
+        </select>
+        <select
           v-model="typeFilter"
           class="rounded-md border-0 py-2 pl-3 pr-10 text-gray-900 ring-1 ring-inset ring-gray-300 focus:ring-1 focus:ring-brand focus:border-brand focus:outline-none sm:text-sm sm:leading-6 transition-shadow"
         >
@@ -59,7 +69,7 @@
 
     <!-- Empty state -->
     <div v-else-if="paginatedFeedbacks.length === 0" class="text-center py-12">
-      <p class="text-gray-500">No feedbacks found</p>
+      <p class="text-gray-500">No feedbacks match your filters.</p>
     </div>
 
     <!-- Feedback list -->
@@ -192,6 +202,7 @@ const error = ref<string | null>(null)
 const searchQuery = ref('')
 const typeFilter = ref('')
 const ratingFilter = ref('')
+const statusFilter = ref('')
 
 // Pagination
 const currentPage = ref(1)
@@ -211,12 +222,19 @@ const lastItem = computed(() =>
 
 // Fetch feedbacks on mount and when filters change
 onMounted(async () => {
+  // Sync filters with query params
+  if (route.query.status) statusFilter.value = route.query.status as string
+  if (route.query.type) typeFilter.value = route.query.type as string
+  if (route.query.rating) ratingFilter.value = route.query.rating as string
   await fetchFeedbacks()
 })
 
 watch(
   () => route.query,
-  async () => {
+  async (newQuery) => {
+    if (newQuery.status !== undefined) statusFilter.value = newQuery.status as string
+    if (newQuery.type !== undefined) typeFilter.value = newQuery.type as string
+    if (newQuery.rating !== undefined) ratingFilter.value = newQuery.rating as string
     await fetchFeedbacks()
   },
   { deep: true },
@@ -249,6 +267,11 @@ const filteredFeedbacks = computed(() => {
         fb.contactInfo?.name?.toLowerCase().includes(query) ||
         fb.contactInfo?.email?.toLowerCase().includes(query),
     )
+  }
+
+  // Apply status filter
+  if (statusFilter.value) {
+    filtered = filtered.filter((fb) => fb.status === statusFilter.value)
   }
 
   // Apply type filter
