@@ -244,7 +244,11 @@ const fetchFeedbacks = async () => {
   try {
     isLoading.value = true
     error.value = null
-    feedbacks.value = await firebaseService.getFeedbacks()
+    feedbacks.value = await firebaseService.getFeedbacks({
+      type: typeFilter.value || undefined,
+      status: statusFilter.value || undefined,
+      hasNotes: route.query.hasNotes === 'true' ? true : undefined,
+    })
   } catch (err) {
     console.error('Error fetching feedbacks:', err)
     error.value = 'Failed to load feedbacks'

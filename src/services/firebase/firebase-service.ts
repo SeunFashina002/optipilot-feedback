@@ -55,6 +55,9 @@ class FirebaseServiceImpl implements FirebaseService {
       if (filters?.status) {
         q = query(q, where('status', '==', filters.status))
       }
+      if (filters?.hasNotes) {
+        q = query(q, where('notes', '!=', []))
+      }
 
       const querySnapshot = await getDocs(q)
       const feedbacks: FeedbackWithId[] = []
@@ -80,15 +83,7 @@ class FirebaseServiceImpl implements FirebaseService {
               adminName: note.adminName,
             })) || [],
         }
-
-        // Filter by hasNotes if specified
-        if (filters?.hasNotes) {
-          if (feedback.notes && feedback.notes.length > 0) {
-            feedbacks.push(feedback)
-          }
-        } else {
-          feedbacks.push(feedback)
-        }
+        feedbacks.push(feedback)
       }
 
       return feedbacks
