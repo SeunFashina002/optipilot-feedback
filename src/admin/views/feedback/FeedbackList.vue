@@ -220,35 +220,32 @@ const lastItem = computed(() =>
   Math.min(currentPage.value * pageSize, filteredFeedbacks.value.length),
 )
 
-// Fetch feedbacks on mount and when filters change
+// Fetch feedbacks on mount and when route changes
 onMounted(async () => {
-  // Sync filters with query params
+  await fetchFeedbacks()
+  // Sync filters with URL params
   if (route.query.status) statusFilter.value = route.query.status as string
   if (route.query.type) typeFilter.value = route.query.type as string
   if (route.query.rating) ratingFilter.value = route.query.rating as string
-  await fetchFeedbacks()
 })
 
+// Watch for route changes to update filters
 watch(
   () => route.query,
-  async (newQuery) => {
-    if (newQuery.status !== undefined) statusFilter.value = newQuery.status as string
-    if (newQuery.type !== undefined) typeFilter.value = newQuery.type as string
-    if (newQuery.rating !== undefined) ratingFilter.value = newQuery.rating as string
-    await fetchFeedbacks()
+  (newQuery) => {
+    statusFilter.value = (newQuery.status as string) || ''
+    typeFilter.value = (newQuery.type as string) || ''
+    ratingFilter.value = (newQuery.rating as string) || ''
   },
-  { deep: true },
+  { immediate: true },
 )
 
 const fetchFeedbacks = async () => {
   try {
     isLoading.value = true
     error.value = null
-    feedbacks.value = await firebaseService.getFeedbacks({
-      type: typeFilter.value || undefined,
-      status: statusFilter.value || undefined,
-      hasNotes: route.query.hasNotes === 'true' ? true : undefined,
-    })
+    // Always fetch all feedbacks
+    feedbacks.value = await firebaseService.getFeedbacks()
   } catch (err) {
     console.error('Error fetching feedbacks:', err)
     error.value = 'Failed to load feedbacks'
@@ -258,7 +255,8 @@ const fetchFeedbacks = async () => {
 }
 
 const filteredFeedbacks = computed(() => {
-  let filtered = feedbacks.value
+  // Always start with the full list
+  let filtered = [...feedbacks.value]
 
   // Apply search filter
   if (searchQuery.value) {

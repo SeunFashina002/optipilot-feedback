@@ -367,7 +367,7 @@ import { useAdminAuth } from '@/stores/adminAuth'
 import { firebaseService } from '@/services/firebase/firebase-service'
 import type { FeedbackWithId } from '@/services/firebase/types'
 
-const emit = defineEmits(['close'])
+const emit = defineEmits(['close', 'update-filters'])
 
 const route = useRoute()
 const router = useRouter()
@@ -377,9 +377,8 @@ const notesOpen = ref(false)
 const allFeedbacks = ref<FeedbackWithId[]>([])
 const filteredFeedbacks = ref<FeedbackWithId[]>([])
 const isLoading = ref(true)
-
-const currentStatus = computed(() => (route.query.status as string) || '')
-const currentType = computed(() => (route.query.type as string) || '')
+const currentStatus = ref('')
+const currentType = ref('')
 
 // Get admin initials
 const adminInitials = computed(() => {
@@ -405,19 +404,19 @@ watch(
   { deep: true },
 )
 
-// Function to fetch feedbacks with current filters
+// Function to fetch feedbacks
 const fetchFeedbacks = async () => {
   try {
     isLoading.value = true
-    // Always fetch all feedbacks for accurate counts
+    // Always fetch all feedbacks
     allFeedbacks.value = await firebaseService.getFeedbacks()
-    
-    // Apply filters for display
-    const filters = {
-      type: currentType.value || undefined,
-      status: currentStatus.value || undefined,
-    }
-    filteredFeedbacks.value = await firebaseService.getFeedbacks(filters)
+    filteredFeedbacks.value = allFeedbacks.value
+    // Emit initial data
+    emit('update-filters', {
+      feedbacks: allFeedbacks.value,
+      type: currentType.value,
+      status: currentStatus.value,
+    })
   } catch (error) {
     console.error('Error loading feedbacks:', error)
   } finally {
@@ -447,24 +446,12 @@ const totalNotes = computed(() => {
   return filteredFeedbacks.value.reduce((sum, fb) => sum + (fb.notes?.length || 0), 0)
 })
 
-// Navigation wrapper that closes sidebar
-const navigateTo = (path: string) => {
-  router.push(path)
-  emit('close')
-}
-
 const filterByStatus = (status: string) => {
   // If clicking the same status, clear the filter
   if (currentStatus.value === status) {
-    router.push({
-      name: 'admin-feedback-list',
-      query: {}, // Clear all query parameters
-    })
+    router.push('/admin/feedback')
   } else {
-    router.push({
-      name: 'admin-feedback-list',
-      query: { status }, // Only set the status parameter
-    })
+    router.push(`/admin/feedback?status=${status}`)
   }
   statusOpen.value = false
   emit('close')
@@ -473,16 +460,26 @@ const filterByStatus = (status: string) => {
 const filterByType = (type: string) => {
   // If clicking the same type, clear the filter
   if (currentType.value === type) {
-    router.push({
-      name: 'admin-feedback-list',
-      query: {}, // Clear all query parameters
-    })
+    router.push('/admin/feedback')
   } else {
-    router.push({
-      name: 'admin-feedback-list',
-      query: { type }, // Only set the type parameter
-    })
+    router.push(`/admin/feedback?type=${type}`)
   }
+  emit('close')
+}
+
+// Navigation wrapper that closes sidebar
+const navigateTo = async (path: string) => {
+  await router.push(path)
+  // Reset filters when navigating
+  currentStatus.value = ''
+  currentType.value = ''
+  filteredFeedbacks.value = allFeedbacks.value
+  // Emit reset data
+  emit('update-filters', {
+    feedbacks: allFeedbacks.value,
+    type: '',
+    status: '',
+  })
   emit('close')
 }
 
@@ -493,10 +490,7 @@ const viewFeedback = (id: string) => {
 }
 
 const viewAllNotes = () => {
-  router.push({
-    name: 'admin-feedback-list',
-    query: { hasNotes: 'true' },
-  })
+  router.push({ name: 'admin-feedback-list' })
   notesOpen.value = false
   emit('close')
 }
