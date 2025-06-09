@@ -18,13 +18,6 @@ export async function sendFeedbackResponseEmail({
   feedbackType?: string
   feedbackText?: string
 }) {
-  // Log environment variables (without exposing sensitive data)
-  console.log('EmailJS Config:', {
-    hasServiceId: !!SERVICE_ID,
-    hasTemplateId: !!TEMPLATE_ID,
-    hasPublicKey: !!PUBLIC_KEY,
-  })
-
   if (!SERVICE_ID || !TEMPLATE_ID || !PUBLIC_KEY) {
     const missingVars = []
     if (!SERVICE_ID) missingVars.push('VITE_EMAILJS_SERVICE_ID')
@@ -42,11 +35,9 @@ export async function sendFeedbackResponseEmail({
   }
 
   try {
-    const result = await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY)
-    console.log('EmailJS Response:', result)
-    return result
+    return await emailjs.send(SERVICE_ID, TEMPLATE_ID, templateParams, PUBLIC_KEY)
   } catch (error) {
-    console.error('EmailJS Error:', error)
+    console.error('Failed to send email:', error)
     throw error
   }
 }
