@@ -5,6 +5,7 @@
         Share Your Feedback
       </h2>
       <p class="text-gray-600 mb-6 sm:mb-8 leading-relaxed">Help us improve OptiPilot</p>
+      <hr class="border-gray-200 sm:hidden mb-6" />
 
       <div class="space-y-6">
         <!-- Feedback Type Selection -->
@@ -75,7 +76,7 @@
             <input
               type="checkbox"
               v-model="wantsResponse"
-              class="w-5 h-5 border-2 border-gray-200 checked:border-brand focus:border-brand focus:ring-0 accent-white transition-colors duration-200"
+              class="appearance-none w-5 h-5 border-2 border-gray-200 checked:bg-brand-dark checked:border-brand-dark focus:border-brand focus:ring-0 [&:checked]:bg-[#36a97a] [&:checked]:border-brand-dark [&:checked]:text-white [&:checked]:bg-[url('data:image/svg+xml;charset=utf-8,%3Csvg%20xmlns%3D%22http%3A%2F%2Fwww.w3.org%2F2000%2Fsvg%22%20viewBox%3D%220%200%2020%2020%22%20fill%3D%22white%22%3E%3Cpath%20fill-rule%3D%22evenodd%22%20d%3D%22M16.707%205.293a1%201%200%20010%201.414l-8%208a1%201%200%2001-1.414%200l-4-4a1%201%200%20011.414-1.414L8%2012.586l7.293-7.293a1%201%200%20011.414%200z%22%20clip-rule%3D%22evenodd%22%2F%3E%3C%2Fsvg%3E')] [&:checked]:bg-center [&:checked]:bg-no-repeat transition-colors duration-200"
             />
             <span class="text-gray-700">I'd like to receive a response</span>
           </label>

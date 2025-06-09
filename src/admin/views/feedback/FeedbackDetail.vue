@@ -22,20 +22,6 @@
           </div>
           <p class="mt-2 text-sm text-gray-700">View and manage individual feedback entry</p>
         </div>
-        <div class="mt-4 flex sm:mt-0 sm:ml-4">
-          <button
-            type="button"
-            class="inline-flex items-center rounded-md bg-white px-3 py-2 text-sm font-semibold text-gray-900 shadow-sm ring-1 ring-inset ring-gray-300 hover:bg-gray-50"
-          >
-            Edit
-          </button>
-          <button
-            type="button"
-            class="ml-3 inline-flex items-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-          >
-            Respond
-          </button>
-        </div>
       </div>
 
       <!-- Content -->
@@ -122,7 +108,7 @@
                   <textarea
                     v-model="newNote"
                     rows="3"
-                    class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
+                    class="block w-full rounded-lg border-2 border-gray-200 shadow-sm focus:border-brand focus:ring-0 focus:outline-none sm:text-sm transition-colors duration-200 placeholder:text-gray-400 px-4 py-3"
                     placeholder="Add internal notes here..."
                     :disabled="addingNote"
                   ></textarea>
@@ -206,7 +192,7 @@
               <div class="mt-4">
                 <textarea
                   rows="4"
-                  class="block w-full rounded-md border-gray-300 shadow-sm focus:border-brand focus:ring-brand sm:text-sm"
+                  class="block w-full rounded-lg border-2 border-gray-200 shadow-sm focus:border-brand focus:ring-0 focus:outline-none sm:text-sm transition-colors duration-200 placeholder:text-gray-400 px-4 py-3"
                   v-model="responseMessage"
                   placeholder="Write your response to the user..."
                 ></textarea>

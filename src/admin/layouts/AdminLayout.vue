@@ -83,22 +83,14 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useAdminAuth } from '@/stores/adminAuth'
 import SidebarNav from '../components/SidebarNav.vue'
+import { useAdminInitials } from '@/admin/composables/useAdminInitials'
 
 const adminAuth = useAdminAuth()
+const { adminInitials } = useAdminInitials()
 const sidebarOpen = ref(false)
-
-// Get admin initials
-const adminInitials = computed(() => {
-  if (!adminAuth.admin?.name) return ''
-  return adminAuth.admin.name
-    .split(' ')
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-})
 </script>
 
 <style scoped>

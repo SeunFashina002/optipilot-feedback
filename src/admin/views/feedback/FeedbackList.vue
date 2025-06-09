@@ -8,11 +8,7 @@
           A list of all feedback received from users including their type, rating, and status.
         </p>
       </div>
-      <button
-        class="bg-brand hover:bg-brand-dark text-white font-semibold px-4 py-2 rounded-md shadow-sm focus:outline-none focus:ring-2 focus:ring-brand focus:ring-offset-2"
-      >
-        Export
-      </button>
+      <ExportButton label="Export" />
     </div>
 
     <!-- Search and Filters -->
@@ -193,6 +189,9 @@ import { useRoute, useRouter } from 'vue-router'
 import { firebaseService } from '@/services/firebase/firebase-service'
 import type { FeedbackWithId } from '@/services/firebase/types'
 import { formatFeedbackType } from '@/utils/feedback'
+import { formatDistanceToNow } from 'date-fns'
+import { useAdminAuth } from '@/stores/adminAuth'
+import ExportButton from '@/admin/components/ExportButton.vue'
 
 const route = useRoute()
 const router = useRouter()

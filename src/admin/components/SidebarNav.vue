@@ -36,9 +36,11 @@
     <nav class="flex-1 px-2 py-4 space-y-1">
       <!-- Dashboard -->
       <button
-        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+        class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
-          $route.path === '/admin'
+          $route.path === '/admin' ||
+          $route.path === '/admin/' ||
+          $route.path === '/admin/dashboard'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
@@ -47,7 +49,11 @@
         <svg
           class="mr-3 h-6 w-6"
           :class="[
-            $route.path === '/admin' ? 'text-brand' : 'text-gray-400 group-hover:text-gray-500',
+            $route.path === '/admin' ||
+            $route.path === '/admin/' ||
+            $route.path === '/admin/dashboard'
+              ? 'text-brand'
+              : 'text-gray-400 group-hover:text-gray-500',
           ]"
           fill="none"
           viewBox="0 0 24 24"
@@ -65,9 +71,12 @@
 
       <!-- All Feedback -->
       <button
-        class="group flex items-center px-2 py-2 text-sm font-medium rounded-md"
+        class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
-          $route.path === '/admin/feedback'
+          $route.path === '/admin/feedback' &&
+          !route.query.type &&
+          !route.query.status &&
+          !route.query.hasNotes
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
@@ -76,7 +85,10 @@
         <svg
           class="mr-3 h-6 w-6"
           :class="[
-            $route.path === '/admin/feedback'
+            $route.path === '/admin/feedback' &&
+            !route.query.type &&
+            !route.query.status &&
+            !route.query.hasNotes
               ? 'text-brand'
               : 'text-gray-400 group-hover:text-gray-500',
           ]"
@@ -174,7 +186,7 @@
       <button
         class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
-          currentType === 'bug'
+          route.query.type === 'bug'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
@@ -183,7 +195,7 @@
         <svg
           class="mr-3 h-6 w-6"
           :class="[
-            currentType === 'bug' ? 'text-brand' : 'text-gray-400 group-hover:text-gray-500',
+            route.query.type === 'bug' ? 'text-brand' : 'text-gray-400 group-hover:text-gray-500',
           ]"
           fill="none"
           viewBox="0 0 24 24"
@@ -207,7 +219,7 @@
       <button
         class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
-          currentType === 'feature'
+          route.query.type === 'feature'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
@@ -216,7 +228,9 @@
         <svg
           class="mr-3 h-6 w-6"
           :class="[
-            currentType === 'feature' ? 'text-brand' : 'text-gray-400 group-hover:text-gray-500',
+            route.query.type === 'feature'
+              ? 'text-brand'
+              : 'text-gray-400 group-hover:text-gray-500',
           ]"
           fill="none"
           viewBox="0 0 24 24"
@@ -240,7 +254,7 @@
       <button
         class="group flex items-center w-full px-2 py-2 text-sm font-medium rounded-md"
         :class="[
-          currentType === 'other'
+          route.query.type === 'other'
             ? 'bg-brand-light text-brand'
             : 'text-gray-600 hover:bg-gray-50 hover:text-gray-900',
         ]"
@@ -249,7 +263,7 @@
         <svg
           class="mr-3 h-6 w-6"
           :class="[
-            currentType === 'other' ? 'text-brand' : 'text-gray-400 group-hover:text-gray-500',
+            route.query.type === 'other' ? 'text-brand' : 'text-gray-400 group-hover:text-gray-500',
           ]"
           fill="none"
           viewBox="0 0 24 24"
@@ -366,12 +380,14 @@ import { useRoute, useRouter } from 'vue-router'
 import { useAdminAuth } from '@/stores/adminAuth'
 import { firebaseService } from '@/services/firebase/firebase-service'
 import type { FeedbackWithId } from '@/services/firebase/types'
+import { useAdminInitials } from '@/admin/composables/useAdminInitials'
 
 const emit = defineEmits(['close', 'update-filters'])
 
 const route = useRoute()
 const router = useRouter()
 const adminAuth = useAdminAuth()
+const { adminInitials } = useAdminInitials()
 const statusOpen = ref(false)
 const notesOpen = ref(false)
 const allFeedbacks = ref<FeedbackWithId[]>([])
@@ -379,16 +395,6 @@ const filteredFeedbacks = ref<FeedbackWithId[]>([])
 const isLoading = ref(true)
 const currentStatus = ref('')
 const currentType = ref('')
-
-// Get admin initials
-const adminInitials = computed(() => {
-  if (!adminAuth.admin?.name) return ''
-  return adminAuth.admin.name
-    .split(' ')
-    .map((word) => word[0])
-    .join('')
-    .toUpperCase()
-})
 
 // Fetch feedbacks on component mount and when filters change
 onMounted(async () => {

@@ -3,7 +3,7 @@
     <div class="w-full px-4">
       <div class="flex justify-between items-center h-16">
         <div class="flex items-center">
-          <h1 class="text-xl font-semibold text-gray-900">OptiPilot</h1>
+          <h1 class="text-xl font-semibold text-brand-dark">OptiPilot</h1>
         </div>
 
         <a

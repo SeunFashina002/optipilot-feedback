@@ -11,12 +11,7 @@
           </h2>
         </div>
         <div class="mt-4 flex md:ml-4 md:mt-0">
-          <button
-            type="button"
-            class="ml-3 inline-flex items-center rounded-md bg-brand px-3 py-2 text-sm font-semibold text-white shadow-sm hover:bg-brand-dark focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-brand"
-          >
-            Export Report
-          </button>
+          <ExportButton label="Export Report" />
         </div>
       </div>
 
@@ -329,6 +324,7 @@ import {
   getFeedbackDistribution,
   getRatingDistribution,
 } from '@/utils/feedback'
+import ExportButton from '@/admin/components/ExportButton.vue'
 
 // Add these after the existing refs
 const feedbacks = ref<FeedbackWithId[]>([])
