@@ -244,6 +244,13 @@
                     <span v-else>Send Response</span>
                   </button>
                 </div>
+                <!-- Add error and success messages -->
+                <div v-if="responseError" class="mt-2 text-sm text-red-600">
+                  {{ responseError }}
+                </div>
+                <div v-if="responseSuccess" class="mt-2 text-sm text-green-600">
+                  {{ responseSuccess }}
+                </div>
               </div>
             </div>
           </div>
@@ -389,7 +396,12 @@ async function handleSendResponse() {
     responseSuccess.value = 'Response sent successfully!'
     responseMessage.value = ''
   } catch (err) {
-    responseError.value = 'Failed to send response.'
+    console.error('Send response error:', err)
+    if (err instanceof Error) {
+      responseError.value = err.message
+    } else {
+      responseError.value = 'Failed to send response. Please check the console for details.'
+    }
   } finally {
     isSendingResponse.value = false
   }
