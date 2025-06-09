@@ -490,7 +490,10 @@ const viewFeedback = (id: string) => {
 }
 
 const viewAllNotes = () => {
-  router.push({ name: 'admin-feedback-list' })
+  router.push({
+    name: 'admin-feedback-list',
+    query: { hasNotes: 'true' },
+  })
   notesOpen.value = false
   emit('close')
 }

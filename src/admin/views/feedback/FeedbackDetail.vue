@@ -396,12 +396,7 @@ async function handleSendResponse() {
     responseSuccess.value = 'Response sent successfully!'
     responseMessage.value = ''
   } catch (err) {
-    console.error('Send response error:', err)
-    if (err instanceof Error) {
-      responseError.value = err.message
-    } else {
-      responseError.value = 'Failed to send response. Please check the console for details.'
-    }
+    responseError.value = err instanceof Error ? err.message : 'Failed to send response'
   } finally {
     isSendingResponse.value = false
   }

@@ -286,6 +286,11 @@ const filteredFeedbacks = computed(() => {
     filtered = filtered.filter((fb) => fb.rating === ratingFilter.value)
   }
 
+  // Apply hasNotes filter
+  if (route.query.hasNotes === 'true') {
+    filtered = filtered.filter((fb) => fb.notes && fb.notes.length > 0)
+  }
+
   return filtered
 })
 
